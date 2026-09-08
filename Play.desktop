@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Play Game
+Exec="/media/alnesr/WindowsData/mGame/picture-word-game/run.sh"
+Path=/media/alnesr/WindowsData/mGame/picture-word-game
+Terminal=false
+Type=Application
+Icon=applications-games
