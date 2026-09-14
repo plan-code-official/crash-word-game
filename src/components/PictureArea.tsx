@@ -1,16 +1,21 @@
 import React from 'react';
 
 interface PictureAreaProps {
-  imageType: 'election' | 'honey' | 'sun_beach' | 'coffee' | 'space_rocket';
+  imageSvgType?: 'election' | 'honey' | 'sun_beach' | 'coffee' | 'space_rocket';
+  imageUrl?: string;
   theme: string;
 }
 
-export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) => {
+export const PictureArea: React.FC<PictureAreaProps> = ({ imageSvgType, imageUrl, theme }) => {
   return (
     <div className="picture-area-container" title={theme}>
       <div className="picture-card-wrapper">
-        {/* 1. Election Ballot Box (صندوق الانتخابات) */}
-        {imageType === 'election' && (
+        {imageUrl ? (
+          <img src={imageUrl} alt={theme} className="level-illustration" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+        ) : (
+          <>
+            {/* 1. Election Ballot Box (صندوق الانتخابات) */}
+            {imageSvgType === 'election' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="boxShadow" x="-10%" y="-10%" width="120%" height="130%">
@@ -72,7 +77,7 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) =>
         )}
 
         {/* 2. Honey Jar */}
-        {imageType === 'honey' && (
+            {imageSvgType === 'honey' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="honeyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -123,7 +128,7 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) =>
         )}
 
         {/* 3. Sunny Beach */}
-        {imageType === 'sun_beach' && (
+            {imageSvgType === 'sun_beach' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -153,7 +158,7 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) =>
         )}
 
         {/* 4. Coffee Cup */}
-        {imageType === 'coffee' && (
+            {imageSvgType === 'coffee' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="cupGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -176,7 +181,7 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) =>
         )}
 
         {/* 5. Space Rocket */}
-        {imageType === 'space_rocket' && (
+            {imageSvgType === 'space_rocket' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="rocketGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -206,6 +211,8 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageType, theme }) =>
               <circle cx="120" cy="102" r="12" fill="#38bdf8" stroke="#ffffff" strokeWidth="2.5" />
             </g>
           </svg>
+            )}
+          </>
         )}
       </div>
     </div>

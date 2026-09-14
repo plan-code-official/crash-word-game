@@ -10,7 +10,8 @@ export interface LevelData {
   levelNumber: number;
   title: string;
   theme: string;
-  imageSvgType: 'election' | 'honey' | 'sun_beach' | 'coffee' | 'space_rocket';
+  imageSvgType?: 'election' | 'honey' | 'sun_beach' | 'coffee' | 'space_rocket';
+  imageUrl?: string;
   cols: number; // e.g. 6
   rows: number; // e.g. 6
   grid: string[]; // Length = cols * rows. Empty string '' is a stone obstacle

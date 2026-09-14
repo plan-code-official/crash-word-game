@@ -21,8 +21,8 @@ export const WordSlots: React.FC<WordSlotsProps> = ({
 
         if (isFound) {
           return (
-            <div 
-              key={item.id} 
+            <div
+              key={item.id}
               className={`word-slot-capsule slot-solved ${colorClass} ${isRecent ? 'slot-pop-anim' : ''}`}
             >
               <span className="solved-word-text">{item.word}</span>

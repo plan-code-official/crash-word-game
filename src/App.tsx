@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
-import { LEVELS } from './data/levels';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import type { LevelData } from './types';
+import { convertQuestionToLevel } from './utils/GridGenerator';
 import { TopBar } from './components/TopBar';
 import { PictureArea } from './components/PictureArea';
 import { WordSlots } from './components/WordSlots';
@@ -7,9 +8,24 @@ import { LetterGrid } from './components/LetterGrid';
 import { BottomBar } from './components/BottomBar';
 import { LevelCompleteModal } from './components/LevelCompleteModal';
 import { LevelSelectModal } from './components/LevelSelectModal';
+import { GameCompleteModal } from './components/GameCompleteModal';
 import { sounds } from './utils/audio';
+import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
+import type { BackendQuestion, SubmitAnswerPayload } from './services/api';
 
 export function App() {
+  // Backend Integration State
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState<{ token: string; sessionId: string; } | null>(null);
+  const [backendQuestions, setBackendQuestions] = useState<BackendQuestion[]>([]);
+  const [levels, setLevels] = useState<LevelData[]>([]);
+  const answersRef = useRef<SubmitAnswerPayload[]>([]);
+  const levelStartTimeRef = useRef<number>(Date.now());
+  const [isGameCompleteModalOpen, setIsGameCompleteModalOpen] = useState(false);
+  const [finalStats, setFinalStats] = useState<any>(null);
+
+  // Game State
   const [levelIndex, setLevelIndex] = useState<number>(0);
   const [coins, setCoins] = useState<number>(6);
   const [foundWordIds, setFoundWordIds] = useState<string[]>([]);
@@ -21,13 +37,41 @@ export function App() {
   const [hintIndices, setHintIndices] = useState<number[]>([]);
   const [isCompletedModalOpen, setIsCompletedModalOpen] = useState<boolean>(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
-  const [rewardToast, setRewardToast] = useState<string | null>(null);
 
-  const currentLevel = LEVELS[levelIndex] || LEVELS[0];
-  const cols = currentLevel.cols || 6;
-  const rows = currentLevel.rows || 6;
+  // Fetch Questions & Start Session on Mount
+  useEffect(() => {
+    const initGame = async () => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const lessonId = searchParams.get('lessonId');
+        const token = searchParams.get('token');
 
-  // Check if two grid indices are adjacent (orthogonally or diagonally: 8 directions)
+        if (!lessonId || !token) {
+          throw new Error('Missing lessonId or token in URL');
+        }
+
+        const questions = await fetchQuestions(lessonId, token);
+        setBackendQuestions(questions);
+        
+        const dynamicLevels = questions.map((q, idx) => convertQuestionToLevel(q, idx));
+        setLevels(dynamicLevels);
+
+        const sessionId = await startSession(lessonId, token);
+        setSessionData({ token, sessionId });
+        levelStartTimeRef.current = Date.now();
+      } catch (err: any) {
+        setApiError(err.message || 'Failed to initialize game');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initGame();
+  }, []);
+
+  const currentLevel = levels[levelIndex];
+  const cols = currentLevel?.cols || 6;
+  const rows = currentLevel?.rows || 6;
+
   const areAdjacent = useCallback((idx1: number, idx2: number): boolean => {
     const r1 = Math.floor(idx1 / cols);
     const c1 = idx1 % cols;
@@ -40,15 +84,14 @@ export function App() {
     return dR <= 1 && dC <= 1 && !(dR === 0 && dC === 0);
   }, [cols]);
 
-  // Check if a tile is already solved or blocked (rock)
   const isTileBlocked = useCallback((idx: number): boolean => {
+    if (!currentLevel) return true;
     const letter = currentLevel.grid[idx];
     if (!letter || letter === 'ROCK') return true;
-    if (solvedMap[idx]) return true; // Already used/solved -> cannot be reused!
+    if (solvedMap[idx]) return true; 
     return false;
   }, [currentLevel, solvedMap]);
 
-  // Start selection when pressing down on any valid tile
   const handleStartSelection = (index: number) => {
     if (wrongSelection || isTileBlocked(index)) return;
 
@@ -57,12 +100,10 @@ export function App() {
     setHintIndices([]);
   };
 
-  // Freeform adjacent drag handler: supports straight lines, L-shapes, zig-zag, curves, etc.
   const handleHoverLetter = (targetIndex: number) => {
     if (!isDragging || wrongSelection) return;
     if (isTileBlocked(targetIndex)) return;
 
-    // 1. Backtracking: if user moves back to previous tile, pop the head of the path
     if (selectedIndices.length > 1 && selectedIndices[selectedIndices.length - 2] === targetIndex) {
       const nextList = selectedIndices.slice(0, selectedIndices.length - 1);
       setSelectedIndices(nextList);
@@ -70,10 +111,8 @@ export function App() {
       return;
     }
 
-    // 2. Ignore if already in current selection path (no self-loops)
     if (selectedIndices.includes(targetIndex)) return;
 
-    // 3. Connect freely if adjacent to the current head of the path
     const currentHead = selectedIndices[selectedIndices.length - 1];
     if (currentHead !== undefined && areAdjacent(currentHead, targetIndex)) {
       const nextList = [...selectedIndices, targetIndex];
@@ -82,7 +121,6 @@ export function App() {
     }
   };
 
-  // Release mouse or touch
   const handleEndSelection = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
@@ -92,23 +130,19 @@ export function App() {
       return;
     }
 
-    // Build the candidate string from selected tiles (supports any shape: L, line, curved)
     const formedWord = selectedIndices.map((i) => currentLevel.grid[i]).join('');
     const reversedWord = [...formedWord].reverse().join('');
 
-    // Check if matches an unfound target word
     const matchedTarget = currentLevel.targetWords.find(
       (tw) => (tw.word === formedWord || tw.word === reversedWord) && !foundWordIds.includes(tw.id)
     );
 
     if (matchedTarget) {
-      // Correct word found!
       sounds.playWordCorrect();
       const updatedFound = [...foundWordIds, matchedTarget.id];
       setFoundWordIds(updatedFound);
       setLastFoundId(matchedTarget.id);
 
-      // Permanently mark these tiles as solved with the word's color (No reusing!)
       const newSolvedMap = { ...solvedMap };
       selectedIndices.forEach((idx) => {
         newSolvedMap[idx] = matchedTarget.color || 'green';
@@ -118,7 +152,6 @@ export function App() {
       setSelectedIndices([]);
       setCoins((c) => c + 5);
 
-      // Check if level is complete
       if (updatedFound.length === currentLevel.targetWords.length) {
         setTimeout(() => {
           sounds.playLevelComplete();
@@ -127,7 +160,6 @@ export function App() {
         }, 500);
       }
     } else {
-      // Wrong word
       sounds.playWrong();
       setWrongSelection(true);
       setTimeout(() => {
@@ -137,7 +169,6 @@ export function App() {
     }
   }, [isDragging, selectedIndices, currentLevel, foundWordIds, solvedMap]);
 
-  // Hint button: reveal next unsolved word
   const handleHint = () => {
     if (coins < 10) return;
 
@@ -151,7 +182,6 @@ export function App() {
     setFoundWordIds(updatedFound);
     setLastFoundId(unsolved.id);
 
-    // Mark solved on grid permanently
     if (unsolved.indices) {
       const newSolvedMap = { ...solvedMap };
       unsolved.indices.forEach((idx) => {
@@ -171,27 +201,53 @@ export function App() {
     }
   };
 
-  // Video reward (+25 coins)
-  const handleVideoReward = () => {
-    sounds.playHint();
-    setCoins((c) => c + 25);
-    setRewardToast('+25 عملة ذهبية مجاناً!');
-    setTimeout(() => setRewardToast(null), 2500);
-  };
-
-  // Next level transition
-  const handleNextLevel = () => {
+  const handleNextLevel = async () => {
     setIsCompletedModalOpen(false);
-    const nextIdx = (levelIndex + 1) % LEVELS.length;
-    setLevelIndex(nextIdx);
-    setFoundWordIds([]);
-    setSolvedMap({});
-    setLastFoundId(null);
-    setSelectedIndices([]);
-    setHintIndices([]);
+
+    // Record dummy answer for this level
+    if (sessionData && backendQuestions.length > 0) {
+      const timeTaken = Math.floor((Date.now() - levelStartTimeRef.current) / 1000);
+      const qId = backendQuestions[Math.min(levelIndex, backendQuestions.length - 1)]?.id || 0;
+      
+      answersRef.current.push({
+        questionId: qId,
+        selectedAnswer: 'Completed',
+        timeTaken
+      });
+    }
+
+    const nextIdx = levelIndex + 1;
+    if (nextIdx < levels.length) {
+      // Continue to next level
+      setLevelIndex(nextIdx);
+      setFoundWordIds([]);
+      setSolvedMap({});
+      setLastFoundId(null);
+      setSelectedIndices([]);
+      setHintIndices([]);
+      levelStartTimeRef.current = Date.now();
+    } else {
+      // Game Over Sequence
+      if (sessionData) {
+        try {
+          setIsLoading(true);
+          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
+          const stats = await completeSession(sessionData.sessionId, sessionData.token);
+          setFinalStats(stats);
+          setIsGameCompleteModalOpen(true);
+        } catch (err: any) {
+          setApiError(err.message || 'Failed to complete game');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // Fallback
+        setFinalStats({ score: 100, stars: 3, coins, experience: 100 });
+        setIsGameCompleteModalOpen(true);
+      }
+    }
   };
 
-  // Switch to specific level from map modal
   const handleSelectLevel = (idx: number) => {
     setLevelIndex(idx);
     setFoundWordIds([]);
@@ -201,43 +257,51 @@ export function App() {
     setHintIndices([]);
   };
 
+  if (isLoading || levels.length === 0) {
+    return (
+      <div className="game-screen-wrapper">
+        <div style={{ color: 'white', fontSize: '2rem' }}>جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  if (apiError) {
+    return (
+      <div className="game-screen-wrapper">
+        <div style={{ textAlign: 'center', color: 'white', padding: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '15px' }}>
+          <h2 style={{ color: '#ff5252', marginBottom: '10px' }}>عذراً!</h2>
+          <p style={{ fontSize: '1.2rem' }}>{apiError}</p>
+        </div>
+      </div>
+    );
+  }
+
   const currentFormedWord = selectedIndices.map((i) => currentLevel.grid[i]).join('');
 
   return (
     <div className="game-screen-wrapper">
       <main className="game-main-container">
-        
-        {/* Top Header */}
         <TopBar 
           levelTitle={currentLevel.title}
           coins={coins}
           onMapClick={() => setIsMapModalOpen(true)}
-          onAddCoins={handleVideoReward}
         />
-
-        {/* Responsive Content Area */}
         <div className="game-body-layout">
-          
-          {/* Picture & Word Slots Section */}
           <div className="game-picture-section">
             <PictureArea 
-              imageType={currentLevel.imageSvgType} 
+              imageSvgType={currentLevel.imageSvgType}
+              imageUrl={currentLevel.imageUrl}
               theme={currentLevel.theme} 
             />
-
             <WordSlots 
               targetWords={currentLevel.targetWords}
               foundWordIds={foundWordIds}
               lastFoundId={lastFoundId}
             />
-
-            {/* Floating drag word preview */}
             <div className={`formed-word-floating ${currentFormedWord ? 'visible' : ''}`}>
               <span>{currentFormedWord || ' '}</span>
             </div>
           </div>
-
-          {/* Interactive Letter Grid with Freeform Drag (L-shape, straight, curved) */}
           <div className="game-grid-section">
             <LetterGrid 
               grid={currentLevel.grid}
@@ -252,40 +316,31 @@ export function App() {
               onEndSelection={handleEndSelection}
             />
           </div>
-
         </div>
-
-        {/* Bottom Bar Controls */}
         <BottomBar 
           coins={coins}
           onHintClick={handleHint}
-          onVideoRewardClick={handleVideoReward}
-          onExitClick={() => setIsMapModalOpen(true)}
         />
-
-        {/* Floating Reward Toast */}
-        {rewardToast && (
-          <div className="reward-toast-badge">
-            <span>{rewardToast}</span>
-          </div>
-        )}
-
-        {/* Map / Level Select Modal */}
         <LevelSelectModal 
           isOpen={isMapModalOpen}
-          levels={LEVELS}
+          levels={levels}
           currentLevelIndex={levelIndex}
           onSelectLevel={handleSelectLevel}
           onClose={() => setIsMapModalOpen(false)}
         />
-
-        {/* Victory Modal */}
         <LevelCompleteModal 
           isOpen={isCompletedModalOpen}
           levelNumber={currentLevel.levelNumber}
           onNextLevel={handleNextLevel}
         />
-
+        <GameCompleteModal
+          isOpen={isGameCompleteModalOpen}
+          score={finalStats?.score || 0}
+          stars={finalStats?.stars || 3}
+          coins={finalStats?.coins || coins}
+          experience={finalStats?.experience || 0}
+          onExit={() => window.parent.postMessage('GAME_COMPLETED', '*')}
+        />
       </main>
     </div>
   );
