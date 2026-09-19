@@ -9,12 +9,14 @@ import { BottomBar } from './components/BottomBar';
 import { LevelCompleteModal } from './components/LevelCompleteModal';
 import { LevelSelectModal } from './components/LevelSelectModal';
 import { GameCompleteModal } from './components/GameCompleteModal';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { sounds } from './utils/audio';
 import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
 import type { BackendQuestion, SubmitAnswerPayload } from './services/api';
 
 export function App() {
   // Backend Integration State
+  const [hasStarted, setHasStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<{ token: string; sessionId: string; } | null>(null);
@@ -257,22 +259,14 @@ export function App() {
     setHintIndices([]);
   };
 
-  if (isLoading || levels.length === 0) {
+  if (!hasStarted) {
     return (
-      <div className="game-screen-wrapper">
-        <div style={{ color: 'white', fontSize: '2rem' }}>جاري التحميل...</div>
-      </div>
-    );
-  }
-
-  if (apiError) {
-    return (
-      <div className="game-screen-wrapper">
-        <div style={{ textAlign: 'center', color: 'white', padding: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '15px' }}>
-          <h2 style={{ color: '#ff5252', marginBottom: '10px' }}>عذراً!</h2>
-          <p style={{ fontSize: '1.2rem' }}>{apiError}</p>
-        </div>
-      </div>
+      <WelcomeScreen 
+        questionsCount={levels.length}
+        isLoading={isLoading}
+        error={apiError}
+        onStart={() => setHasStarted(true)}
+      />
     );
   }
 

@@ -1,0 +1,156 @@
+.welcome-screen-new {
+  direction: rtl;
+  background: radial-gradient(circle at center, #113645, #08171d);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  font-family: inherit; /* Ensure it uses the game's default font */
+}
+
+/* Header */
+.welcome-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+}
+
+/* The background is ltr so that the layout inside is strictly left-to-right */
+.welcome-stats-bg {
+  direction: ltr; 
+  background-image: url('../assets/QuestionNumber.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 15px;
+  min-width: 200px;
+  height: 50px;
+}
+
+.welcome-stats-bg img {
+  height: 35px;
+  width: auto;
+  object-fit: contain;
+}
+
+.welcome-stats-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  margin: 0 10px;
+}
+
+.separator {
+  color: #fff;
+}
+
+.xp-text {
+  color: #FFD700; /* Yellow */
+}
+
+/* Body */
+.welcome-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 800px;
+  width: 100%;
+  z-index: 10;
+  margin-top: 60px; /* Space for the header */
+}
+
+.how-to-play-img {
+  width: 100%;
+  height: auto;
+  max-height: 55vh;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+/* Footer / Button */
+.welcome-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  z-index: 10;
+}
+
+.start-button {
+  background-image: url('../assets/startButton.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  padding: 10px 40px 20px 40px; /* Extra padding-bottom to center text */
+  width: 250px;
+  height: 90px;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.start-button:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.start-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  font-size: 1.2rem;
+}
+
+.error-text {
+  color: #ff6b6b;
+  margin-bottom: 15px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .welcome-screen-new {
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  
+  .welcome-header {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-bottom: 10px;
+  }
+  
+  .welcome-body {
+    margin-top: 0;
+  }
+  
+  .start-button {
+    width: 200px;
+    height: 75px;
+    font-size: 1.6rem;
+    padding-bottom: 15px;
+  }
+}

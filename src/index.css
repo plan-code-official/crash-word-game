@@ -36,13 +36,13 @@ html, body, #root {
 .game-main-container {
   position: relative;
   z-index: 1;
-  width: 100%;
-  max-width: 440px;
   min-height: 100dvh;
   height: auto;
   max-height: none;
   width: 100%;
   max-width: clamp(320px, 90vw, 950px);
+  padding: clamp(15px, 3vw, 25px); /* Added padding as requested */
+  margin: 0 auto; /* Added margin for safe centering */
   background: rgba(200, 230, 255, 0.4);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
@@ -541,7 +541,7 @@ html, body, #root {
   width: 100%;
   height: 100%;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto; overflow-x: hidden;
   border-radius: 11px;
 }
 
