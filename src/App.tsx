@@ -6,9 +6,9 @@ import { PictureArea } from './components/PictureArea';
 import { WordSlots } from './components/WordSlots';
 import { LetterGrid } from './components/LetterGrid';
 import { BottomBar } from './components/BottomBar';
-import { LevelCompleteModal } from './components/LevelCompleteModal';
 import { LevelSelectModal } from './components/LevelSelectModal';
-import { GameCompleteModal } from './components/GameCompleteModal';
+import { CelebrationWrapper } from './components/CelebrationWrapper';
+import { ResultsPanelWrapper } from './components/ResultsPanelWrapper';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { sounds } from './utils/audio';
 import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
@@ -24,7 +24,8 @@ export function App() {
   const [levels, setLevels] = useState<LevelData[]>([]);
   const answersRef = useRef<SubmitAnswerPayload[]>([]);
   const levelStartTimeRef = useRef<number>(Date.now());
-  const [isGameCompleteModalOpen, setIsGameCompleteModalOpen] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [finalStats, setFinalStats] = useState<any>(null);
 
   // Game State
@@ -37,7 +38,6 @@ export function App() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [wrongSelection, setWrongSelection] = useState<boolean>(false);
   const [hintIndices, setHintIndices] = useState<number[]>([]);
-  const [isCompletedModalOpen, setIsCompletedModalOpen] = useState<boolean>(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
 
   // Fetch Questions & Start Session on Mount
@@ -123,6 +123,51 @@ export function App() {
     }
   };
 
+  const handleLevelComplete = async () => {
+    // Record dummy answer for this level
+    if (sessionData && backendQuestions.length > 0) {
+      const timeTaken = Math.floor((Date.now() - levelStartTimeRef.current) / 1000);
+      const qId = backendQuestions[Math.min(levelIndex, backendQuestions.length - 1)]?.id || 0;
+      
+      answersRef.current.push({
+        questionId: qId,
+        selectedAnswer: 'Completed',
+        timeTaken
+      });
+    }
+
+    const nextIdx = levelIndex + 1;
+    if (nextIdx < levels.length) {
+      // Continue to next level
+      setLevelIndex(nextIdx);
+      setFoundWordIds([]);
+      setSolvedMap({});
+      setLastFoundId(null);
+      setSelectedIndices([]);
+      setHintIndices([]);
+      levelStartTimeRef.current = Date.now();
+    } else {
+      // Game Over Sequence
+      if (sessionData) {
+        try {
+          setIsLoading(true);
+          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
+          const stats = await completeSession(sessionData.sessionId, sessionData.token);
+          setFinalStats(stats);
+          setShowCelebration(true);
+        } catch (err: any) {
+          setApiError(err.message || 'Failed to complete game');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // Fallback
+        setFinalStats({ score: 100, stars: 3, coins: coins + 20, experience: 100 });
+        setShowCelebration(true);
+      }
+    }
+  };
+
   const handleEndSelection = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
@@ -155,10 +200,10 @@ export function App() {
       setCoins((c) => c + 5);
 
       if (updatedFound.length === currentLevel.targetWords.length) {
+        setCoins((c) => c + 20);
         setTimeout(() => {
           sounds.playLevelComplete();
-          setIsCompletedModalOpen(true);
-          setCoins((c) => c + 20);
+          handleLevelComplete();
         }, 500);
       }
     } else {
@@ -195,58 +240,11 @@ export function App() {
     }
 
     if (updatedFound.length === currentLevel.targetWords.length) {
+      setCoins((c) => c + 20);
       setTimeout(() => {
         sounds.playLevelComplete();
-        setIsCompletedModalOpen(true);
-        setCoins((c) => c + 20);
+        handleLevelComplete();
       }, 600);
-    }
-  };
-
-  const handleNextLevel = async () => {
-    setIsCompletedModalOpen(false);
-
-    // Record dummy answer for this level
-    if (sessionData && backendQuestions.length > 0) {
-      const timeTaken = Math.floor((Date.now() - levelStartTimeRef.current) / 1000);
-      const qId = backendQuestions[Math.min(levelIndex, backendQuestions.length - 1)]?.id || 0;
-      
-      answersRef.current.push({
-        questionId: qId,
-        selectedAnswer: 'Completed',
-        timeTaken
-      });
-    }
-
-    const nextIdx = levelIndex + 1;
-    if (nextIdx < levels.length) {
-      // Continue to next level
-      setLevelIndex(nextIdx);
-      setFoundWordIds([]);
-      setSolvedMap({});
-      setLastFoundId(null);
-      setSelectedIndices([]);
-      setHintIndices([]);
-      levelStartTimeRef.current = Date.now();
-    } else {
-      // Game Over Sequence
-      if (sessionData) {
-        try {
-          setIsLoading(true);
-          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
-          const stats = await completeSession(sessionData.sessionId, sessionData.token);
-          setFinalStats(stats);
-          setIsGameCompleteModalOpen(true);
-        } catch (err: any) {
-          setApiError(err.message || 'Failed to complete game');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        // Fallback
-        setFinalStats({ score: 100, stars: 3, coins, experience: 100 });
-        setIsGameCompleteModalOpen(true);
-      }
     }
   };
 
@@ -257,6 +255,32 @@ export function App() {
     setLastFoundId(null);
     setSelectedIndices([]);
     setHintIndices([]);
+  };
+
+  // Endgame: Celebration finishes → show ResultsPanel
+  const handleCelebrationComplete = () => {
+    setShowCelebration(false);
+    setShowResults(true);
+  };
+
+  // ResultsPanel: Retry → reset the entire game
+  const handleRetry = () => {
+    setShowResults(false);
+    setFinalStats(null);
+    setLevelIndex(0);
+    setFoundWordIds([]);
+    setSolvedMap({});
+    setLastFoundId(null);
+    setSelectedIndices([]);
+    setHintIndices([]);
+    setCoins(6);
+    answersRef.current = [];
+    levelStartTimeRef.current = Date.now();
+  };
+
+  // ResultsPanel: Back → exit game
+  const handleBack = () => {
+    window.parent.postMessage('GAME_COMPLETED', '*');
   };
 
   if (!hasStarted) {
@@ -322,20 +346,24 @@ export function App() {
           onSelectLevel={handleSelectLevel}
           onClose={() => setIsMapModalOpen(false)}
         />
-        <LevelCompleteModal 
-          isOpen={isCompletedModalOpen}
-          levelNumber={currentLevel.levelNumber}
-          onNextLevel={handleNextLevel}
-        />
-        <GameCompleteModal
-          isOpen={isGameCompleteModalOpen}
-          score={finalStats?.score || 0}
-          stars={finalStats?.stars || 3}
-          coins={finalStats?.coins || coins}
-          experience={finalStats?.experience || 0}
-          onExit={() => window.parent.postMessage('GAME_COMPLETED', '*')}
-        />
       </main>
+
+      <CelebrationWrapper
+        isVisible={showCelebration}
+        onComplete={handleCelebrationComplete}
+      />
+
+      {showResults && (
+        <ResultsPanelWrapper
+          score={finalStats?.score || 0}
+          totalScore={100}
+          correctAnswers={levels.length}
+          wrongAnswers={0}
+          coins={finalStats?.coins || coins}
+          onRetry={handleRetry}
+          onBack={handleBack}
+        />
+      )}
     </div>
   );
 }

@@ -126,7 +126,7 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
   return {
     id: question.id,
     levelNumber: index + 1,
-    title: `مرحلة ${index + 1}`,
+    title: `${index + 1}`,
     theme: question.question || question.hint || 'لغز',
     imageUrl: question.imageUrl,
     cols,

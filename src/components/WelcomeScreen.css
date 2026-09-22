@@ -1,7 +1,8 @@
 .welcome-screen-new {
   direction: rtl;
-  background: radial-gradient(circle at center, #113645, #08171d);
-  min-height: 100vh;
+  background: #061e2d url('../assets/BG.png') center center / cover no-repeat;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +10,14 @@
   position: relative;
   overflow: hidden;
   padding: 20px;
-  font-family: inherit; /* Ensure it uses the game's default font */
+  box-sizing: border-box;
+  font-family: 'Cairo', sans-serif;
+}
+
+.welcome-screen-new,
+.welcome-screen-new *,
+.welcome-screen-new button {
+  font-family: 'Cairo', sans-serif !important;
 }
 
 /* Header */

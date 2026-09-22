@@ -22,8 +22,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         <span className="coins-amount">{coins}</span>
       </div>
 
-      {/* Level Title (Hidden or Center, the screenshot doesn't show a level title, but we can keep it if needed) */}
-      <h1 className="level-title">{levelTitle}</h1>
+      {/* Level Number (without the word 'مرحلة') */}
+      {levelTitle && (
+        <h1 className="level-title">
+          {levelTitle.replace(/مرحلة\s*/g, '').trim()}
+        </h1>
+      )}
 
       {/* Map Badge Button (Right) */}
       <button

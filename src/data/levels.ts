@@ -4,7 +4,7 @@ export const LEVELS: LevelData[] = [
   {
     id: 1,
     levelNumber: 1,
-    title: "مرحلة 1",
+    title: "1",
     theme: "صندوق الانتخابات",
     imageSvgType: 'election',
     cols: 6,
@@ -66,7 +66,7 @@ export const LEVELS: LevelData[] = [
   {
     id: 2,
     levelNumber: 2,
-    title: "مرحلة 2",
+    title: "2",
     theme: "عسل النحل",
     imageSvgType: 'honey',
     cols: 6,
@@ -121,7 +121,7 @@ export const LEVELS: LevelData[] = [
   {
     id: 3,
     levelNumber: 3,
-    title: "مرحلة 3",
+    title: "3",
     theme: "شاطئ البحر",
     imageSvgType: 'sun_beach',
     cols: 6,
@@ -182,7 +182,7 @@ export const LEVELS: LevelData[] = [
   {
     id: 4,
     levelNumber: 4,
-    title: "مرحلة 4",
+    title: "4",
     theme: "فنجان القهوة",
     imageSvgType: 'coffee',
     cols: 6,
@@ -237,7 +237,7 @@ export const LEVELS: LevelData[] = [
   {
     id: 5,
     levelNumber: 5,
-    title: "مرحلة 5",
+    title: "5",
     theme: "رحلة الفضاء",
     imageSvgType: 'space_rocket',
     cols: 6,
