@@ -279,9 +279,15 @@ export function App() {
     window.location.reload();
   };
 
-  // ResultsPanel: Back → exit game
-  const handleBack = () => {
-    window.parent.postMessage('GAME_COMPLETED', '*');
+  // ResultsPanel / Exit Game: Back → exit game
+  const handleExitSite = () => {
+    // Check if the user has a browser history (meaning they came from your portal)
+    if (window.history.length > 1) {
+      window.history.back(); // Triggers the browser's native "Back" action
+    } else {
+      // Fallback: If they opened the game in a brand new tab directly, go to the root domain
+      window.location.href = '/'; 
+    }
   };
 
   if (!hasStarted) {
@@ -323,7 +329,7 @@ export function App() {
           currentQuestion={levelIndex + 1}
           totalQuestions={levels.length}
           coins={coins}
-          onExitClick={handleBack}
+          onExitClick={handleExitSite}
         />
         <div className="game-body-layout">
           <div className="game-picture-section">
@@ -382,7 +388,7 @@ export function App() {
           wrongAnswers={0}
           coins={finalStats?.coins || coins}
           onRetry={handleRetry}
-          onBack={handleBack}
+          onBack={handleExitSite}
         />
       )}
     </div>
