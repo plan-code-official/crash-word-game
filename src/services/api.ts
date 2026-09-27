@@ -37,7 +37,7 @@ export const fetchQuestions = async (lessonId: string, token: string): Promise<B
   return [];
 };
 
-export const startSession = async (lessonId: string, token: string): Promise<string> => {
+export const startSession = async (lessonId: string, token: string): Promise<{ sessionId: string, coins: number }> => {
   const response = await fetch(`${BASE_URL}/${GAME_ID}/sessions?lessonId=${lessonId}`, {
     method: 'POST',
     headers: {
@@ -52,7 +52,10 @@ export const startSession = async (lessonId: string, token: string): Promise<str
 
   const data = await response.json();
   if (data.success && data.data && data.data.id) {
-    return data.data.id;
+    return {
+      sessionId: data.data.id,
+      coins: typeof data.data.coins === 'number' ? data.data.coins : 0
+    };
   }
   throw new Error('Invalid session response');
 };
@@ -75,13 +78,14 @@ export const submitAnswers = async (sessionId: string, token: string, answers: S
   }
 };
 
-export const completeSession = async (sessionId: string, token: string): Promise<any> => {
+export const completeSession = async (sessionId: string, token: string, coinsUsed: number = 0): Promise<any> => {
   const response = await fetch(`${BASE_URL}/sessions/${sessionId}/complete`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({ coinsUsed })
   });
 
   if (!response.ok) {

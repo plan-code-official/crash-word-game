@@ -5,6 +5,8 @@ import coinsImage from './assets/money.png';
 import correctImage from './assets/right.png';
 import wrongImage from './assets/wrong.png';
 import buttonFrame from './assets/boutton.png';
+import exitBtnIcon from '../../src/assets/ExitButton.svg';
+import retryBtnIcon from '../../src/assets/retry.png';
 
 const numberValue = (value) => {
   const parsed = Number(value);
@@ -40,13 +42,6 @@ export class ResultsPanel {
     titleImg.src = celebrationTitle;
     titleImg.alt = "أحسنت";
 
-    const scoreCard = document.createElement("div");
-    scoreCard.className = "results-score-card";
-    const scoreLabel = document.createElement("span");
-    scoreLabel.className = "results-score-card__label";
-    scoreLabel.textContent = "الدَّرَجَةُ";
-    this.scoreText = document.createElement("strong");
-    scoreCard.append(scoreLabel, this.scoreText);
 
     const stats = document.createElement("div");
     stats.className = "results-stats";
@@ -70,16 +65,8 @@ export class ResultsPanel {
     coinsLabel.textContent = "فِلُوس";
     coinsCard.append(coinsImg, this.coinsText, coinsLabel);
 
-    const wrongCard = document.createElement("div");
-    wrongCard.className = "results-stat-card results-stat-card--wrong";
-    const wrongImg = document.createElement("img");
-    wrongImg.src = wrongImage;
-    wrongImg.alt = "إجابات خاطئة";
-    this.wrongText = document.createElement("strong");
-    wrongCard.append(wrongImg, this.wrongText);
-
-    stats.append(correctCard, coinsCard, wrongCard);
-    content.append(titleImg, scoreCard, stats);
+    stats.append(correctCard, coinsCard);
+    content.append(titleImg, stats);
     panel.append(content);
 
     const actions = document.createElement("div");
@@ -90,17 +77,20 @@ export class ResultsPanel {
     backBtn.type = "button";
     backBtn.onclick = () => { if (this.onBack) this.onBack(); };
     const backBtnImg = document.createElement("img");
+    backBtnImg.className = "results-action-bg";
     backBtnImg.src = buttonFrame;
     backBtnImg.alt = "";
     backBtnImg.setAttribute("aria-hidden", "true");
     const backGrp = document.createElement("span");
     backGrp.className = "results-action__group";
     const backTxt = document.createElement("span");
-    backTxt.textContent = "ارْجِعْ";
-    const backIcon = document.createElement("span");
+    backTxt.textContent = "خروج";
+    const backIcon = document.createElement("img");
     backIcon.className = "results-action__exit-icon";
-    backIcon.setAttribute("aria-hidden", "true");
-    backIcon.textContent = "⎋";
+    backIcon.src = exitBtnIcon;
+    backIcon.style.height = "22px";
+    backIcon.style.marginRight = "8px";
+    backIcon.style.position = "relative";
     backGrp.append(backTxt, backIcon);
     backBtn.append(backBtnImg, backGrp);
 
@@ -109,14 +99,17 @@ export class ResultsPanel {
     retryBtn.type = "button";
     retryBtn.onclick = () => { if (this.onRetry) this.onRetry(); };
     const retryBtnImg = document.createElement("img");
+    retryBtnImg.className = "results-action-bg";
     retryBtnImg.src = buttonFrame;
     retryBtnImg.alt = "";
     retryBtnImg.setAttribute("aria-hidden", "true");
-    const retryIcon = document.createElement("span");
-    retryIcon.setAttribute("aria-hidden", "true");
-    retryIcon.textContent = "↻";
+    const retryIcon = document.createElement("img");
+    retryIcon.src = retryBtnIcon;
+    retryIcon.style.height = "26px";
+    retryIcon.style.position = "relative";
     const retryTxt = document.createElement("span");
     retryTxt.textContent = "ثانِيَةً";
+    retryTxt.style.marginRight = "8px";
     retryBtn.append(retryBtnImg, retryIcon, retryTxt);
 
     actions.append(backBtn, retryBtn);
@@ -125,15 +118,10 @@ export class ResultsPanel {
   }
 
   show(data = {}) {
-    const finalScore = numberValue(data.score);
-    const maximumScore = numberValue(data.totalScore) || 100;
     const correct = numberValue(data.correctAnswers);
-    const wrong = numberValue(data.wrongAnswers);
     const earnedCoins = numberValue(data.coins);
 
-    this.scoreText.textContent = `${finalScore}/${maximumScore}`;
     this.correctText.textContent = correct;
-    this.wrongText.textContent = wrong;
     this.coinsText.textContent = `+${earnedCoins}`;
 
     this.root.appendChild(this.el);
