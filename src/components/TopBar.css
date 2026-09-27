@@ -1,0 +1,152 @@
+.topbar-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(30, 30, 30, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  box-sizing: border-box;
+  margin-top: 10px;
+}
+
+.topbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 12px;
+  direction: ltr; /* Ensure consistent layout (Exit on right, Coins on left) */
+}
+
+/* Exit Button (Right Side) */
+.topbar-exit-btn {
+  background: white;
+  border: none;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+  padding: 8px;
+}
+
+.topbar-exit-btn:hover {
+  transform: scale(1.05);
+}
+
+.topbar-exit-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Center Info */
+.topbar-center-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Cairo', sans-serif;
+}
+
+.topbar-question-label {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.topbar-question-count {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Coins Badge (Left Side) */
+.topbar-coins-badge {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 4px 16px 4px 6px;
+  gap: 12px;
+  min-width: 90px;
+}
+
+.topbar-coin-wrapper {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-coin-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.topbar-coins-amount {
+  color: white;
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* Progress Bar */
+.topbar-progress-container {
+  width: 100%;
+  height: 6px;
+  background: #0d3b4a; /* Dark border / background color from image */
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.topbar-progress-fill {
+  height: 100%;
+  background-color: #71D9FF;
+  border-radius: 2px;
+  transition: width 0.3s ease-in-out;
+  box-shadow: 0 0 8px rgba(113, 217, 255, 0.6);
+}
+
+@media (max-width: 320px) {
+  .topbar-container {
+    padding: 8px 10px;
+  }
+  .topbar-coins-badge {
+    padding: 2px 10px 2px 4px;
+    gap: 6px;
+    min-width: 70px;
+  }
+  .topbar-coin-wrapper {
+    width: 24px;
+    height: 24px;
+  }
+  .topbar-exit-btn {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+  }
+  .topbar-question-label {
+    font-size: 1.1rem;
+  }
+  .topbar-question-count {
+    font-size: 1rem;
+  }
+}

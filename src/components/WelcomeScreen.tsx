@@ -5,6 +5,7 @@ import './WelcomeScreen.css';
 import questionCoinImg from '../assets/QuestionCoin.png';
 import daddcoinImg from '../assets/daddcoin.webp';
 import descriptionImg from '../assets/description.png';
+import exitButtonImg from '../assets/ExitButton.svg';
 
 export interface WelcomeScreenProps {
   questionsCount: number;
@@ -21,13 +22,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 }) => {
   return (
     <div className="welcome-screen-new">
-      {/* Header section positioned top-right (but LTR inside for stats) */}
+      {/* Header section spanning the top */}
       <div className="welcome-header">
+        <button className="exit-button-top" onClick={() => window.history.back()}>
+          <img src={exitButtonImg} alt="Exit" />
+        </button>
+
         <div className="welcome-stats-bg">
           <img src={questionCoinImg} alt="Question Coin" />
           <div className="welcome-stats-center">
             <span>{questionsCount}</span>
-            <span className="separator">{'>'}</span>
+            <span className="separator">{'='}</span>
             {/* The points equal the question point number as requested */}
             <span className="xp-text">{questionsCount}</span>
           </div>

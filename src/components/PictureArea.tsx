@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface PictureAreaProps {
   imageSvgType?: 'election' | 'honey' | 'sun_beach' | 'coffee' | 'space_rocket';
@@ -7,13 +7,14 @@ interface PictureAreaProps {
 }
 
 export const PictureArea: React.FC<PictureAreaProps> = ({ imageSvgType, imageUrl, theme }) => {
-  return (
-    <div className="picture-area-container" title={theme}>
-      <div className="picture-card-wrapper">
-        {imageUrl ? (
-          <img src={imageUrl} alt={theme} className="level-illustration" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-        ) : (
-          <>
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const renderContent = () => {
+    if (imageUrl) {
+      return <img src={imageUrl} alt={theme} className="level-illustration" style={{ objectFit: 'cover', width: '100%', height: '100%' }} />;
+    }
+    return (
+      <>
             {/* 1. Election Ballot Box (صندوق الانتخابات) */}
             {imageSvgType === 'election' && (
           <svg viewBox="0 0 240 240" className="level-illustration" xmlns="http://www.w3.org/2000/svg">
@@ -213,8 +214,34 @@ export const PictureArea: React.FC<PictureAreaProps> = ({ imageSvgType, imageUrl
           </svg>
             )}
           </>
-        )}
+    );
+  };
+
+  return (
+    <>
+      <div 
+        className="picture-area-container" 
+        title={theme} 
+        onClick={() => setIsModalOpen(true)}
+        style={{ cursor: 'zoom-in' }}
+      >
+        <div className="picture-card-wrapper">
+          {renderContent()}
+        </div>
       </div>
-    </div>
+
+      {isModalOpen && (
+        <div className="image-modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="image-modal-close" onClick={() => setIsModalOpen(false)}>
+              ✖
+            </button>
+            <div className="large-picture-wrapper">
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

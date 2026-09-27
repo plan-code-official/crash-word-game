@@ -1,47 +1,58 @@
 import React from 'react';
 import daddcoinImg from '../assets/daddcoin.webp';
+import ExitButtonImg from '../assets/ExitButton.svg';
+import './TopBar.css';
 
 interface TopBarProps {
-  levelTitle: string;
+  currentQuestion: number;
+  totalQuestions: number;
   coins: number;
-  onMapClick?: () => void;
+  onExitClick?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
-  levelTitle,
+  currentQuestion,
+  totalQuestions,
   coins,
-  onMapClick
+  onExitClick
 }) => {
+  const progressPercent = totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
+
   return (
     <header className="topbar-container">
-      {/* Coins Badge (Left) */}
-      <div className="coins-badge-container">
-        <div className="gold-coin-wrapper">
-          <img src={daddcoinImg} alt="coin" className="custom-coin-img" />
+      <div className="topbar-content">
+        {/* Left Side: Coins */}
+        <div className="topbar-coins-badge">
+          <div className="topbar-coin-wrapper">
+            <img src={daddcoinImg} alt="coin" className="topbar-coin-img" />
+          </div>
+          <span className="topbar-coins-amount">{coins}</span>
         </div>
-        <span className="coins-amount">{coins}</span>
+
+        {/* Center: Question Info */}
+        <div className="topbar-center-info">
+          <span className="topbar-question-label">السؤال</span>
+          <span className="topbar-question-count">{currentQuestion}/{totalQuestions}</span>
+        </div>
+
+        {/* Right Side: Exit Button */}
+        <button
+          className="topbar-exit-btn"
+          onClick={onExitClick}
+          title="خروج"
+          aria-label="خروج"
+        >
+          <img src={ExitButtonImg} alt="خروج" />
+        </button>
       </div>
 
-      {/* Level Number (without the word 'مرحلة') */}
-      {levelTitle && (
-        <h1 className="level-title">
-          {levelTitle.replace(/مرحلة\s*/g, '').trim()}
-        </h1>
-      )}
-
-      {/* Map Badge Button (Right) */}
-      <button
-        className="map-btn"
-        onClick={onMapClick}
-        title="خريطة المراحل"
-        aria-label="خريطة المراحل"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="logout-icon">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-      </button>
+      {/* Progress Bar */}
+      <div className="topbar-progress-container">
+        <div 
+          className="topbar-progress-fill" 
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
     </header>
   );
 };

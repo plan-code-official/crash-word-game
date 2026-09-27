@@ -28,9 +28,15 @@ export function App() {
   const [showResults, setShowResults] = useState(false);
   const [finalStats, setFinalStats] = useState<any>(null);
 
+  // Overlays
+  const [showCorrectOverlay, setShowCorrectOverlay] = useState(false);
+  const [showWrongOverlay, setShowWrongOverlay] = useState(false);
+  const [showNoCoinsOverlay, setShowNoCoinsOverlay] = useState(false);
+
   // Game State
   const [levelIndex, setLevelIndex] = useState<number>(0);
   const [coins, setCoins] = useState<number>(6);
+  const [coinsUsed, setCoinsUsed] = useState<number>(0);
   const [foundWordIds, setFoundWordIds] = useState<string[]>([]);
   const [solvedMap, setSolvedMap] = useState<{ [index: number]: string }>({}); // index -> word color theme
   const [lastFoundId, setLastFoundId] = useState<string | null>(null);
@@ -38,6 +44,7 @@ export function App() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [wrongSelection, setWrongSelection] = useState<boolean>(false);
   const [hintIndices, setHintIndices] = useState<number[]>([]);
+  const [hintCount, setHintCount] = useState<number>(0);
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
 
   // Fetch Questions & Start Session on Mount
@@ -58,8 +65,13 @@ export function App() {
         const dynamicLevels = questions.map((q, idx) => convertQuestionToLevel(q, idx));
         setLevels(dynamicLevels);
 
-        const sessionId = await startSession(lessonId, token);
+        const { sessionId, coins: fetchedCoins } = await startSession(lessonId, token);
         setSessionData({ token, sessionId });
+        
+        if (typeof fetchedCoins === 'number' && !isNaN(fetchedCoins)) {
+          setCoins(fetchedCoins);
+        }
+        
         levelStartTimeRef.current = Date.now();
       } catch (err: any) {
         setApiError(err.message || 'Failed to initialize game');
@@ -145,6 +157,7 @@ export function App() {
       setLastFoundId(null);
       setSelectedIndices([]);
       setHintIndices([]);
+      setHintCount(0);
       levelStartTimeRef.current = Date.now();
     } else {
       // Game Over Sequence
@@ -152,7 +165,7 @@ export function App() {
         try {
           setIsLoading(true);
           await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
-          const stats = await completeSession(sessionData.sessionId, sessionData.token);
+          const stats = await completeSession(sessionData.sessionId, sessionData.token, coinsUsed);
           setFinalStats(stats);
           setShowCelebration(true);
         } catch (err: any) {
@@ -162,7 +175,7 @@ export function App() {
         }
       } else {
         // Fallback
-        setFinalStats({ score: 100, stars: 3, coins: coins + 20, experience: 100 });
+        setFinalStats({ score: 100, stars: 3, coins: coins, experience: 100 });
         setShowCelebration(true);
       }
     }
@@ -197,10 +210,13 @@ export function App() {
       setSolvedMap(newSolvedMap);
 
       setSelectedIndices([]);
-      setCoins((c) => c + 5);
+      setHintCount(0);
+      setCoins((c) => c + 1);
+
+      setShowCorrectOverlay(true);
+      setTimeout(() => setShowCorrectOverlay(false), 1200);
 
       if (updatedFound.length === currentLevel.targetWords.length) {
-        setCoins((c) => c + 20);
         setTimeout(() => {
           sounds.playLevelComplete();
           handleLevelComplete();
@@ -209,43 +225,38 @@ export function App() {
     } else {
       sounds.playWrong();
       setWrongSelection(true);
+      setShowWrongOverlay(true);
       setTimeout(() => {
         setWrongSelection(false);
         setSelectedIndices([]);
       }, 450);
+      setTimeout(() => setShowWrongOverlay(false), 1200);
     }
   }, [isDragging, selectedIndices, currentLevel, foundWordIds, solvedMap]);
 
   const handleHint = () => {
-    if (coins < 10) return;
+    if (coins < 1) {
+      setShowNoCoinsOverlay(true);
+      setTimeout(() => setShowNoCoinsOverlay(false), 1500);
+      return;
+    }
 
     const unsolved = currentLevel.targetWords.find((tw) => !foundWordIds.includes(tw.id));
-    if (!unsolved) return;
+    if (!unsolved || !unsolved.indices) return;
 
     sounds.playHint();
-    setCoins((c) => c - 10);
+    setCoins((c) => c - 1);
+    setCoinsUsed((prev) => prev + 1);
 
-    const updatedFound = [...foundWordIds, unsolved.id];
-    setFoundWordIds(updatedFound);
-    setLastFoundId(unsolved.id);
-
-    if (unsolved.indices) {
-      const newSolvedMap = { ...solvedMap };
-      unsolved.indices.forEach((idx) => {
-        newSolvedMap[idx] = unsolved.color || 'green';
-      });
-      setSolvedMap(newSolvedMap);
-      setHintIndices(unsolved.indices);
-      setTimeout(() => setHintIndices([]), 1200);
-    }
-
-    if (updatedFound.length === currentLevel.targetWords.length) {
-      setCoins((c) => c + 20);
-      setTimeout(() => {
-        sounds.playLevelComplete();
-        handleLevelComplete();
-      }, 600);
-    }
+    // Give hint for a single character in the unsolved word
+    const hintIdx = unsolved.indices[hintCount % unsolved.indices.length];
+    
+    setHintIndices([hintIdx]);
+    setHintCount((c) => c + 1);
+    
+    setTimeout(() => {
+      setHintIndices((prev) => prev.filter(i => i !== hintIdx));
+    }, 1200);
   };
 
   const handleSelectLevel = (idx: number) => {
@@ -263,19 +274,9 @@ export function App() {
     setShowResults(true);
   };
 
-  // ResultsPanel: Retry → reset the entire game
+  // ResultsPanel: Retry → reload page for fresh state
   const handleRetry = () => {
-    setShowResults(false);
-    setFinalStats(null);
-    setLevelIndex(0);
-    setFoundWordIds([]);
-    setSolvedMap({});
-    setLastFoundId(null);
-    setSelectedIndices([]);
-    setHintIndices([]);
-    setCoins(6);
-    answersRef.current = [];
-    levelStartTimeRef.current = Date.now();
+    window.location.reload();
   };
 
   // ResultsPanel: Back → exit game
@@ -299,10 +300,30 @@ export function App() {
   return (
     <div className="game-screen-wrapper">
       <main className="game-main-container">
+        
+        {showCorrectOverlay && (
+          <div className="answer-overlay correct">
+            أحسنت! ✔
+          </div>
+        )}
+        
+        {showWrongOverlay && (
+          <div className="answer-overlay wrong">
+            خطأ ✖
+          </div>
+        )}
+
+        {showNoCoinsOverlay && (
+          <div className="answer-overlay wrong" style={{ fontSize: '2.5rem', padding: '15px 30px' }}>
+            لا يوجد رصيد كافي
+          </div>
+        )}
+
         <TopBar 
-          levelTitle={currentLevel.title}
+          currentQuestion={levelIndex + 1}
+          totalQuestions={levels.length}
           coins={coins}
-          onMapClick={() => setIsMapModalOpen(true)}
+          onExitClick={handleBack}
         />
         <div className="game-body-layout">
           <div className="game-picture-section">
