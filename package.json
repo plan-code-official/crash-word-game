@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "arabic-hangman-game": "file:../arabic-hangman-game",
     "canvas-confetti": "^1.9.3",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
@@ -16,9 +17,9 @@
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.6.4",
+    "@types/node": "^22.0.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
-    "@types/node": "^22.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.7.2",
     "vite": "^6.0.5"
