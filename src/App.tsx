@@ -210,6 +210,7 @@ export function App() {
       setSolvedMap(newSolvedMap);
 
       setSelectedIndices([]);
+      setHintIndices([]);
       setHintCount(0);
       setCoins((c) => c + 1);
 
@@ -251,12 +252,13 @@ export function App() {
     // Give hint for a single character in the unsolved word
     const hintIdx = unsolved.indices[hintCount % unsolved.indices.length];
     
-    setHintIndices([hintIdx]);
+    setHintIndices((prev) => {
+      if (!prev.includes(hintIdx)) {
+        return [...prev, hintIdx];
+      }
+      return prev;
+    });
     setHintCount((c) => c + 1);
-    
-    setTimeout(() => {
-      setHintIndices((prev) => prev.filter(i => i !== hintIdx));
-    }, 1200);
   };
 
   const handleSelectLevel = (idx: number) => {
