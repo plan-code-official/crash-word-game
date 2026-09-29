@@ -9,6 +9,8 @@ function generateRandomArabicLetter() {
 
 export function convertQuestionToLevel(question: BackendQuestion, index: number): LevelData {
   const words = question.options.map(o => o.text).filter(w => typeof w === 'string' && w.trim().length > 0);
+  const questionImage = question.imageUrl || question.options.find((option: any) => option?.imageUrl)?.imageUrl;
+  const questionAudio = question.audioUrl || question.options.find((option: any) => option?.audioUrl)?.audioUrl;
   const cols = 6;
   const rows = 6;
   const gridSize = cols * rows;
@@ -128,7 +130,9 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
     levelNumber: index + 1,
     title: `${index + 1}`,
     theme: question.question || question.hint || 'لغز',
-    imageUrl: question.imageUrl,
+    imageUrl: questionImage,
+    questionText: question.question || null,
+    audioUrl: questionAudio || null,
     cols,
     rows,
     grid,

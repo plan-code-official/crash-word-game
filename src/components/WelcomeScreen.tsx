@@ -5,7 +5,8 @@ import './WelcomeScreen.css';
 import questionCoinImg from '../assets/QuestionCoin.png';
 import daddcoinImg from '../assets/daddcoin.webp';
 import descriptionImg from '../assets/description.png';
-import exitButtonImg from '../assets/ExitButton.svg';
+import exitButtonImg from '../assets/exit_transparent.png';
+import startButtonImg from '../assets/start_transparent.png';
 
 export interface WelcomeScreenProps {
   questionsCount: number;
@@ -22,42 +23,42 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 }) => {
   return (
     <div className="welcome-screen-new">
-      {/* Header section spanning the top */}
-      <div className="welcome-header">
-        <button className="exit-button-top" onClick={() => window.history.back()}>
-          <img src={exitButtonImg} alt="Exit" />
-        </button>
-
-        <div className="welcome-stats-bg">
-          <img src={questionCoinImg} alt="Question Coin" />
-          <div className="welcome-stats-center">
-            <span>{questionsCount}</span>
-            <span className="separator">{'='}</span>
-            {/* The points equal the question point number as requested */}
-            <span className="xp-text">{questionsCount}</span>
-          </div>
-          <img src={daddcoinImg} alt="Gold Coin" />
-        </div>
+      <div className="welcome-stats-bg">
+        <img src={questionCoinImg} alt="Question Coin" />
+        <span className="stat-value">{questionsCount}</span>
+        <span className="stat-separator">=</span>
+        <span className="stat-value xp-text">{questionsCount}</span>
+        <img src={daddcoinImg} alt="Gold Coin" />
       </div>
 
-      {/* Body section vertically centered */}
       <div className="welcome-body">
         <img src={descriptionImg} alt="كيفية اللعب" className="how-to-play-img" />
       </div>
 
-      {/* Footer / Start Button */}
       <div className="welcome-footer">
-        {error && <div className="error-text">حدث خطأ: {error}</div>}
-        {!error && questionsCount === 0 && !isLoading && (
-          <div className="error-text">لا توجد أسئلة متاحة حالياً.</div>
+        {error || (!isLoading && questionsCount === 0) ? (
+          <div className="error-text">
+            {error ? `حدث خطأ: ${error}` : 'لا توجد أسئلة متاحة حالياً.'}
+          </div>
+        ) : (
+          <>
+            <button
+              className="welcome-action-button exit-button"
+              onClick={() => window.history.back()}
+              aria-label="خروج"
+            >
+              <img src={exitButtonImg} alt="خروج" />
+            </button>
+            <button
+              className="welcome-action-button start-button"
+              onClick={onStart}
+              disabled={isLoading}
+              aria-label={isLoading ? 'تحميل' : 'ابدأ'}
+            >
+              <img src={startButtonImg} alt="ابدأ" />
+            </button>
+          </>
         )}
-        <button 
-          className="start-button" 
-          onClick={onStart}
-          disabled={isLoading || questionsCount === 0 || !!error}
-        >
-          {isLoading ? 'جاري تحميل الأسئلة...' : 'ابدَأ!'}
-        </button>
       </div>
     </div>
   );
