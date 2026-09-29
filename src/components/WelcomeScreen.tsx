@@ -9,14 +9,14 @@ import exitButtonImg from '../assets/exit_transparent.png';
 import startButtonImg from '../assets/start_transparent.png';
 
 export interface WelcomeScreenProps {
-  questionsCount: number;
+  choicesCount: number;
   isLoading?: boolean;
   error?: string | null;
   onStart: () => void;
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
-  questionsCount,
+  choicesCount,
   isLoading = false,
   error = null,
   onStart,
@@ -25,9 +25,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     <div className="welcome-screen-new">
       <div className="welcome-stats-bg">
         <img src={questionCoinImg} alt="Question Coin" />
-        <span className="stat-value">{questionsCount}</span>
+        <span className="stat-value">{choicesCount}</span>
         <span className="stat-separator">=</span>
-        <span className="stat-value xp-text">{questionsCount}</span>
+        <span className="stat-value xp-text">{choicesCount}</span>
         <img src={daddcoinImg} alt="Gold Coin" />
       </div>
 
@@ -36,9 +36,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </div>
 
       <div className="welcome-footer">
-        {error || (!isLoading && questionsCount === 0) ? (
+        {error || (!isLoading && choicesCount === 0) ? (
           <div className="error-text">
-            {error ? `حدث خطأ: ${error}` : 'لا توجد أسئلة متاحة حالياً.'}
+            {error ? `حدث خطأ: ${error}` : 'لا توجد اختيارات متاحة حالياً.'}
           </div>
         ) : (
           <>
