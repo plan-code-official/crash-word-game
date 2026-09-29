@@ -37,6 +37,7 @@ export function App() {
   // Game State
   const [levelIndex, setLevelIndex] = useState<number>(0);
   const [coins, setCoins] = useState<number>(6);
+  const [choicesFound, setChoicesFound] = useState<number>(0);
   const [coinsUsed, setCoinsUsed] = useState<number>(0);
   const [foundWordIds, setFoundWordIds] = useState<string[]>([]);
   const [solvedMap, setSolvedMap] = useState<{ [index: number]: string }>({}); // index -> word color theme
@@ -86,6 +87,7 @@ export function App() {
   const currentLevel = levels[levelIndex];
   const cols = currentLevel?.cols || 6;
   const rows = currentLevel?.rows || 6;
+  const totalChoices = levels.reduce((total, level) => total + level.targetWords.length, 0);
 
   const areAdjacent = useCallback((idx1: number, idx2: number): boolean => {
     const r1 = Math.floor(idx1 / cols);
@@ -214,6 +216,7 @@ export function App() {
       setHintIndices([]);
       setHintCount(0);
       setCoins((c) => c + 1);
+      setChoicesFound((count) => count + 1);
 
       setShowCorrectOverlay(true);
       setTimeout(() => setShowCorrectOverlay(false), 1200);
@@ -296,7 +299,7 @@ export function App() {
   if (!hasStarted) {
     return (
       <WelcomeScreen 
-        questionsCount={levels.length}
+        choicesCount={totalChoices}
         isLoading={isLoading}
         error={apiError}
         onStart={() => setHasStarted(true)}
@@ -329,8 +332,8 @@ export function App() {
         )}
 
         <TopBar 
-          currentQuestion={levelIndex + 1}
-          totalQuestions={levels.length}
+          currentChoice={choicesFound}
+          totalChoices={totalChoices}
           coins={coins}
           onExitClick={handleExitSite}
         />

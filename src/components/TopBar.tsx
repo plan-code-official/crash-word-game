@@ -4,19 +4,19 @@ import ExitButtonImg from '../assets/ExitButton.svg';
 import './TopBar.css';
 
 interface TopBarProps {
-  currentQuestion: number;
-  totalQuestions: number;
+  currentChoice: number;
+  totalChoices: number;
   coins: number;
   onExitClick?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
-  currentQuestion,
-  totalQuestions,
+  currentChoice,
+  totalChoices,
   coins,
   onExitClick
 }) => {
-  const progressPercent = totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
+  const progressPercent = totalChoices > 0 ? (currentChoice / totalChoices) * 100 : 0;
 
   return (
     <header className="topbar-container">
@@ -31,8 +31,8 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Center: Question Info */}
         <div className="topbar-center-info">
-          <span className="topbar-question-label">السؤال</span>
-          <span className="topbar-question-count">{currentQuestion}/{totalQuestions}</span>
+          <span className="topbar-question-label">الاختيارات</span>
+          <span className="topbar-question-count">{currentChoice}/{totalChoices}</span>
         </div>
 
         {/* Right Side: Exit Button */}
