@@ -53,7 +53,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               className="welcome-action-button start-button"
               onClick={onStart}
               disabled={isLoading}
-              aria-label={isLoading ? 'جاري تحميل الأسئلة' : 'ابدأ'}
+              aria-label={isLoading ? 'تحميل' : 'ابدأ'}
             >
               <img src={startButtonImg} alt="ابدأ" />
             </button>

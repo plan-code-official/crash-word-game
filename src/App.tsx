@@ -12,6 +12,7 @@ import { ResultsPanelWrapper } from './components/ResultsPanelWrapper';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { sounds } from './utils/audio';
 import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
+import { QuestionMedia } from './components/QuestionMedia';
 import type { BackendQuestion, SubmitAnswerPayload } from './services/api';
 
 export function App() {
@@ -310,14 +311,14 @@ export function App() {
       <main className="game-main-container">
         
         {showCorrectOverlay && (
-          <div className="answer-overlay correct">
-            أحسنت! ✔
+          <div className="answer-overlay answer-feedback-card answer-feedback-card--success" dir="rtl">
+            <svg className="answer-feedback__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg><span>أحسنت!</span>
           </div>
         )}
         
         {showWrongOverlay && (
-          <div className="answer-overlay wrong">
-            خطأ ✖
+          <div className="answer-overlay answer-feedback-card answer-feedback-card--wrong" dir="rtl">
+            <svg className="answer-feedback__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6m0-6-6 6" /></svg><span>خطأ</span>
           </div>
         )}
 
@@ -335,6 +336,7 @@ export function App() {
         />
         <div className="game-body-layout">
           <div className="game-picture-section">
+            <QuestionMedia text={currentLevel.questionText} audioUrl={currentLevel.audioUrl} />
             <PictureArea 
               imageSvgType={currentLevel.imageSvgType}
               imageUrl={currentLevel.imageUrl}

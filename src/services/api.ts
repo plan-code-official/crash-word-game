@@ -11,6 +11,7 @@ export interface BackendQuestion {
   order: number;
   hint?: string;
   imageUrl?: string;
+  audioUrl?: string | null;
 }
 
 export interface SubmitAnswerPayload {
