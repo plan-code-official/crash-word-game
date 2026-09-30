@@ -31,7 +31,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Center: Question Info */}
         <div className="topbar-center-info">
-          <span className="topbar-question-label">الاختيارات</span>
+          <span className="topbar-question-label">السؤال</span>
           <span className="topbar-question-count">{currentChoice}/{totalChoices}</span>
         </div>
 
