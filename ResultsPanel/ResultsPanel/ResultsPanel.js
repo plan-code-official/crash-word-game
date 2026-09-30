@@ -53,6 +53,13 @@ export class ResultsPanel {
     this.failTitle.textContent = "حاول مرة أخرى!";
     this.failTitle.style.display = "none";
 
+    const gradeCard = document.createElement("div");
+    gradeCard.className = "results-grade";
+    const gradeLabel = document.createElement("span");
+    gradeLabel.textContent = "الدَّرَجَة";
+    this.gradeText = document.createElement("strong");
+    gradeCard.append(gradeLabel, this.gradeText);
+
     // Zone 2: 3 Stat Cards (LTR)
     const stats = document.createElement("div");
     stats.className = "results-stats";
@@ -87,7 +94,7 @@ export class ResultsPanel {
     wrongCard.append(wrongImg, this.wrongText);
 
     stats.append(correctCard, coinsCard, wrongCard);
-    content.append(this.titleImg, this.failTitle, stats);
+    content.append(this.titleImg, this.failTitle, gradeCard, stats);
     panel.append(content);
 
     // Zone 3: Bottom Action Buttons (RTL: Exit Right, Retry Left)
@@ -133,6 +140,8 @@ export class ResultsPanel {
     this.coinsText.textContent = `+${earnedCoins}`;
 
     const totalAnswers = correct + wrong;
+    const correctPercent = totalAnswers ? Math.round((correct / totalAnswers) * 100) : 0;
+    this.gradeText.textContent = `${correctPercent}/100`;
     if (totalAnswers > 0 && correct / totalAnswers >= 0.5) {
       this.titleImg.style.display = "block";
       this.failTitle.style.display = "none";
