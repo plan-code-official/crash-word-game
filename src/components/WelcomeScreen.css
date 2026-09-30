@@ -10,13 +10,13 @@
   overflow: hidden;
   padding: 20px;
   box-sizing: border-box;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
 }
 
 .welcome-screen-new,
 .welcome-screen-new *,
 .welcome-screen-new button {
-  font-family: 'Cairo', sans-serif !important;
+  font-family: 'Lateef', sans-serif !important;
 }
 
 .welcome-stats-bg {
