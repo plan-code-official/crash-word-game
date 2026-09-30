@@ -38,6 +38,7 @@ export function App() {
   const [levelIndex, setLevelIndex] = useState<number>(0);
   const [coins, setCoins] = useState<number>(6);
   const [choicesFound, setChoicesFound] = useState<number>(0);
+  const [wrongWordAttempts, setWrongWordAttempts] = useState<number>(0);
   const [coinsUsed, setCoinsUsed] = useState<number>(0);
   const [foundWordIds, setFoundWordIds] = useState<string[]>([]);
   const [solvedMap, setSolvedMap] = useState<{ [index: number]: string }>({}); // index -> word color theme
@@ -228,6 +229,7 @@ export function App() {
         }, 500);
       }
     } else {
+      setWrongWordAttempts((count) => count + 1);
       sounds.playWrong();
       setWrongSelection(true);
       setShowWrongOverlay(true);
@@ -391,8 +393,8 @@ export function App() {
         <ResultsPanelWrapper
           score={finalStats?.score || 0}
           totalScore={100}
-          correctAnswers={levels.length}
-          wrongAnswers={0}
+          correctAnswers={totalChoices}
+          wrongAnswers={wrongWordAttempts}
           coins={finalStats?.coins || coins}
           onRetry={handleRetry}
           onBack={handleExitSite}
