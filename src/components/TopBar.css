@@ -55,7 +55,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
 }
 
 .topbar-question-label {
@@ -101,7 +101,7 @@
 
 .topbar-coins-amount {
   color: white;
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Lateef', sans-serif;
   font-size: 1.2rem;
   font-weight: 800;
 }

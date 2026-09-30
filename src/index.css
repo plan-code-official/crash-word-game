@@ -20,7 +20,7 @@ body,
   overflow: hidden;
   margin: 0;
   padding: 0;
-  font-family: 'Lateef', 'Cairo', serif;
+  font-family: 'Lateef', 'Lateef', serif;
   background-color: #031c24;
 }
 
@@ -958,12 +958,12 @@ select {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   animation: popInOverlay 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.answer-feedback-card { min-width:clamp(220px,42vw,360px); padding:clamp(16px,2.6vh,26px) clamp(24px,4vw,48px); border:2px solid; border-radius:24px; background:linear-gradient(180deg,rgba(8,48,70,.96),rgba(5,30,48,.94)); font-family:'Cairo',sans-serif; font-size:clamp(1.65rem,min(4.8vw,5.5vh),3rem); line-height:1; white-space:nowrap; }
+.answer-feedback-card { min-width:clamp(220px,42vw,360px); padding:clamp(16px,2.6vh,26px) clamp(24px,4vw,48px); border:2px solid; border-radius:24px; background:linear-gradient(180deg,rgba(8,48,70,.96),rgba(5,30,48,.94)); font-family:'Lateef',sans-serif; font-size:clamp(2.1rem, min(6vw, 6.4vh), 3.8rem); line-height:1; white-space:nowrap; }
 .answer-feedback-card--success { color:#38ef7d; border-color:#38ef7d; }
 .answer-feedback-card--wrong { color:#ff5d5c; border-color:#ff5d5c; }
 .answer-feedback__icon { width:1.15em; height:1.15em; flex:0 0 auto; }
 .question-media { width:min(92%,520px); display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:clamp(6px,1.5vh,14px); }
-.question-media__text { max-width:100%; color:#fff; font:900 clamp(1.1rem,3vw,2.2rem)/1.2 'Cairo',sans-serif; text-align:center; text-shadow:0 3px 8px rgba(0,0,0,.5); }
+.question-media__text { max-width:100%; color:#fff; font:900 clamp(1.1rem,3vw,2.2rem)/1.2 'Lateef',sans-serif; text-align:center; text-shadow:0 3px 8px rgba(0,0,0,.5); }
 .question-media__audio { width:46px; height:46px; flex:0 0 auto; display:grid; place-items:center; border:2px solid rgba(255,255,255,.6); border-radius:50%; color:#fff; background:#0ea5e9; cursor:pointer; box-shadow:0 5px 14px rgba(14,165,233,.35); }
 .question-media__audio svg { width:25px; height:25px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .answer-feedback-card { direction: ltr; flex-direction: row; display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
@@ -1105,4 +1105,19 @@ select {
   .tile-arabic-char {
     font-size: 1.2rem !important;
   }
+}
+
+/* Keep the reward art from covering the values in the results panel. */
+.results-stat-card {
+  min-height: clamp(112px, 20vh, 172px);
+  aspect-ratio: auto;
+  padding-top: clamp(48px, 6vh, 54px) !important;
+  gap: clamp(2px, .6vh, 8px);
+}
+.results-stat-card > img {
+  top: clamp(-12px, -1.8vh, -8px) !important;
+  height: clamp(38px, min(6vh, 6vw), 52px) !important;
+}
+.results-stat-card--coins > img {
+  height: clamp(42px, min(7vh, 7vw), 58px) !important;
 }
