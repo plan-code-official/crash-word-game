@@ -8,7 +8,7 @@ import { LetterGrid } from './components/LetterGrid';
 import { BottomBar } from './components/BottomBar';
 import { LevelSelectModal } from './components/LevelSelectModal';
 import { CelebrationWrapper } from './components/CelebrationWrapper';
-import { ResultsPanelWrapper } from './components/ResultsPanelWrapper';
+import ResultsPanel from './ResultsPanel/ResultsPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { sounds } from './utils/audio';
 import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
@@ -390,7 +390,7 @@ export function App() {
       />
 
       {showResults && (
-        <ResultsPanelWrapper
+        <ResultsPanel
           score={finalStats?.score || 0}
           totalScore={100}
           correctAnswers={totalChoices}

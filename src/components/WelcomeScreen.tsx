@@ -1,12 +1,14 @@
 import React from 'react';
-import './WelcomeScreen.css';
+import GameWelcomeScreen from './GameWelcomeScreen/GameWelcomeScreen';
 
 // Assets
 import questionCoinImg from '../assets/QuestionCoin.png';
 import daddcoinImg from '../assets/daddcoin.webp';
 import descriptionImg from '../assets/description.png';
-import exitButtonImg from '../assets/exit_transparent.png';
+import exitButtonImg from '../assets/Exit1.png';
 import startButtonImg from '../assets/start_transparent.png';
+import questionNumberBg from '../assets/QuestionNumber.png';
+import bgImg from '../assets/BG.png';
 
 export interface WelcomeScreenProps {
   choicesCount: number;
@@ -21,45 +23,33 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   error = null,
   onStart,
 }) => {
+  const isReady = !isLoading && choicesCount > 0;
+
+  if (error) {
+    return (
+      <div className="error-text" style={{ textAlign: 'center', padding: '20px', direction: 'rtl' }}>
+        حدث خطأ: {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="welcome-screen-new">
-      <div className="welcome-stats-bg">
-        <img src={questionCoinImg} alt="Question Coin" />
-        <span className="stat-value">{choicesCount}</span>
-        <span className="stat-separator">=</span>
-        <span className="stat-value xp-text">{choicesCount}</span>
-        <img src={daddcoinImg} alt="Gold Coin" />
-      </div>
-
-      <div className="welcome-body">
-        <img src={descriptionImg} alt="كيفية اللعب" className="how-to-play-img" />
-      </div>
-
-      <div className="welcome-footer">
-        {error || (!isLoading && choicesCount === 0) ? (
-          <div className="error-text">
-            {error ? `حدث خطأ: ${error}` : 'لا توجد اختيارات متاحة حالياً.'}
-          </div>
-        ) : (
-          <>
-            <button
-              className="welcome-action-button exit-button"
-              onClick={() => window.history.back()}
-              aria-label="خروج"
-            >
-              <img src={exitButtonImg} alt="خروج" />
-            </button>
-            <button
-              className="welcome-action-button start-button"
-              onClick={onStart}
-              disabled={isLoading}
-              aria-label={isLoading ? 'تحميل' : 'ابدأ'}
-            >
-              <img src={startButtonImg} alt="ابدأ" />
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+    <GameWelcomeScreen
+      backgroundImage={bgImg}
+      statsBgImage={questionNumberBg}
+      statLeftIcon={questionCoinImg}
+      statLeftAlt="عدد الأسئلة"
+      statLeftValue={choicesCount}
+      statRightValue={choicesCount}
+      statRightIcon={daddcoinImg}
+      statRightAlt="النقاط"
+      descriptionImage={descriptionImg}
+      startButtonImage={startButtonImg}
+      exitButtonImage={exitButtonImg}
+      onStart={onStart}
+      onExit={() => window.history.back()}
+      isLoading={isLoading}
+      isReady={isReady}
+    />
   );
 };
