@@ -16,7 +16,7 @@ export const QuestionMedia: React.FC<Props> = ({ text, audioUrl }) => {
     audioRef.current.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   };
   return <div className="question-media" dir="rtl">
-    {text && <div className="question-media__text">{text}</div>}
+    {text && text !== '.' && text !== '<p>.</p>' && text !== '<p>.</p>\n' && <div className="question-media__text">{text}</div>}
     {audioUrl && <button className={`question-media__audio ${playing ? 'is-playing' : ''}`} type="button" onClick={play} aria-label="تشغيل صوت السؤال"><VolumeIcon /></button>}
   </div>;
 };

@@ -129,6 +129,35 @@ select {
   }
 }
 
+/* Handle short landscape screens to prevent cutoff */
+@media (max-height: 550px) and (min-width: 768px) {
+  .game-screen-wrapper {
+    align-items: flex-start;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    overflow-y: auto;
+  }
+  .game-main-container {
+    max-height: none;
+    height: auto;
+    padding: 10px;
+  }
+  .game-body-layout {
+    padding: 5px;
+    gap: 10px;
+  }
+  .picture-card-wrapper {
+    width: clamp(140px, 35vh, 220px) !important;
+  }
+  .letter-grid-container {
+    max-width: clamp(220px, 50vh, 320px) !important;
+  }
+  .tile-arabic-char {
+    font-size: clamp(1.2rem, 4vh, 2rem) !important;
+  }
+}
+
+
 @media (max-width: 770px) {
   .game-screen-wrapper {
     padding: 0;
