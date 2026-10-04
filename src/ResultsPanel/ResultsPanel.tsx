@@ -26,7 +26,6 @@ interface ResultsPanelProps {
 }
 
 export default function ResultsPanel({
-  totalScore = 100,
   correctAnswers,
   wrongAnswers,
   coins,
@@ -51,7 +50,7 @@ export default function ResultsPanel({
         className="results-screen"
         aria-label="نتائج اللعبة"
         dir="rtl"
-        style={ratio ? { '--rp-ratio': ratio } : undefined}
+        style={ratio ? { '--rp-ratio': ratio } as React.CSSProperties : undefined}
       >
         <div className="results-panel">
           <img
