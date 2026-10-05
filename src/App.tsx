@@ -56,10 +56,11 @@ export function App() {
       try {
         const searchParams = new URLSearchParams(window.location.search);
         const lessonId = searchParams.get('lessonId');
-        const token = searchParams.get('token');
+        // Optional: when absent, api.ts obtains the token via the refresh endpoint
+        const token = searchParams.get('token') || '';
 
-        if (!lessonId || !token) {
-          throw new Error('Missing lessonId or token in URL');
+        if (!lessonId) {
+          throw new Error('Missing lessonId in URL');
         }
 
         const questions = await fetchQuestions(lessonId, token);
