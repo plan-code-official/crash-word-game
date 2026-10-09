@@ -18,6 +18,8 @@ export interface LevelData {
   rows: number; // e.g. 6
   grid: string[]; // Length = cols * rows. Empty string '' is a stone obstacle
   targetWords: TargetWord[];
+  unplacedWords?: string[];
+  hasFittingIssue?: boolean;
 }
 
 export interface WordColorStyle {

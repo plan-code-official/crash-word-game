@@ -137,7 +137,7 @@ export class ResultsPanel {
 
     this.correctText.textContent = correct;
     this.wrongText.textContent = wrong;
-    this.coinsText.textContent = `+${earnedCoins}`;
+    this.coinsText.textContent = `${earnedCoins}`;
 
     const totalAnswers = correct + wrong;
     const correctPercent = totalAnswers ? Math.round((correct / totalAnswers) * 100) : 0;

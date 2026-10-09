@@ -11,88 +11,74 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
   const words = question.options.map(o => o.text).filter(w => typeof w === 'string' && w.trim().length > 0);
   const questionImage = question.imageUrl || question.options.find((option: any) => option?.imageUrl)?.imageUrl;
   const questionAudio = question.audioUrl || question.options.find((option: any) => option?.audioUrl)?.audioUrl;
-  const cols = 6;
-  const rows = 6;
-  const gridSize = cols * rows;
-  const grid: string[] = Array(gridSize).fill('');
-  const targetWords: TargetWord[] = [];
   
   const colors = ['purple', 'orange', 'green', 'blue', 'pink', 'red'];
-  
-  // Sort words by length descending to place longer words first
-  words.sort((a, b) => b.length - a.length);
 
-    function placeWord(word: string, currentGrid: string[], allowCurves: boolean): number[] | null {
-      const emptyCells = [];
-      for(let i = 0; i < gridSize; i++) {
+  // Calculate required grid dimensions so all words fit
+  const longestWord = words.reduce((max, w) => Math.max(max, w.length), 0);
+  const totalLetters = words.reduce((sum, w) => sum + w.length, 0);
+
+  // Minimum grid size is 6x6. If any word is longer than 6, adapt to fit it.
+  let cols = Math.max(6, longestWord);
+  let rows = Math.max(6, longestWord);
+
+  // Ensure grid has enough space for all letters with breathing room
+  while (cols * rows < totalLetters + 6 && cols < 8) {
+    cols++;
+    rows++;
+  }
+
+  // Easy mode for students: only right-to-left, up-to-down, down-to-up.
+  const dirs = [
+    [-1, 0], // down-to-up
+    [1, 0],  // up-to-down
+    [0, -1]  // right-to-left (Arabic reading direction)
+  ];
+
+  function tryGenerateGrid(gridCols: number, gridRows: number): { grid: string[]; targetWords: TargetWord[]; unplaced: string[] } {
+    const totalSize = gridCols * gridRows;
+    const tempGrid: string[] = Array(totalSize).fill('');
+    const tempTargetWords: TargetWord[] = [];
+    const unplaced: string[] = [];
+
+    // Sort words descending by length with slight random variation between attempts
+    const sortedWords = [...words].sort((a, b) => b.length - a.length || (Math.random() - 0.5));
+
+    function placeWord(word: string, currentGrid: string[]): number[] | null {
+      const emptyCells: number[] = [];
+      for (let i = 0; i < totalSize; i++) {
         if (currentGrid[i] === '') emptyCells.push(i);
       }
-      
       emptyCells.sort(() => Math.random() - 0.5);
 
-      const dirs = [
-        [-1, 0], [1, 0], [0, -1], [0, 1] // up, down, left, right
-      ];
-      
       for (const startIdx of emptyCells) {
-        if (!allowCurves) {
-          // Straight line logic
-          const startR = Math.floor(startIdx / cols);
-          const startC = startIdx % cols;
-          dirs.sort(() => Math.random() - 0.5);
+        const startR = Math.floor(startIdx / gridCols);
+        const startC = startIdx % gridCols;
+        const shuffledDirs = [...dirs].sort(() => Math.random() - 0.5);
 
-          for (const [dr, dc] of dirs) {
-             const path: number[] = [];
-             let canPlace = true;
-             
-             for (let i = 0; i < word.length; i++) {
-               const nr = startR + dr * i;
-               const nc = startC + dc * i;
-               
-               if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                 const idx = nr * cols + nc;
-                 if (currentGrid[idx] === '') {
-                   path.push(idx);
-                 } else {
-                   canPlace = false;
-                   break;
-                 }
-               } else {
-                 canPlace = false;
-                 break;
-               }
-             }
-             if (canPlace && path.length === word.length) {
-               return path;
-             }
-          }
-        } else {
-          // Curve logic (DFS)
+        for (const [dr, dc] of shuffledDirs) {
           const path: number[] = [];
-          
-          const dfs = (currIdx: number, letterIndex: number): boolean => {
-            path.push(currIdx);
-            if (letterIndex === word.length) return true;
-            
-            const r = Math.floor(currIdx / cols);
-            const c = currIdx % cols;
-            
-            const shuffledDirs = [...dirs].sort(() => Math.random() - 0.5);
-            for (const [dr, dc] of shuffledDirs) {
-              const nr = r + dr;
-              const nc = c + dc;
-              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                const nextIdx = nr * cols + nc;
-                if (currentGrid[nextIdx] === '' && !path.includes(nextIdx)) {
-                  if (dfs(nextIdx, letterIndex + 1)) return true;
-                }
+          let canPlace = true;
+
+          for (let i = 0; i < word.length; i++) {
+            const nr = startR + dr * i;
+            const nc = startC + dc * i;
+
+            if (nr >= 0 && nr < gridRows && nc >= 0 && nc < gridCols) {
+              const idx = nr * gridCols + nc;
+              if (currentGrid[idx] === '') {
+                path.push(idx);
+              } else {
+                canPlace = false;
+                break;
               }
+            } else {
+              canPlace = false;
+              break;
             }
-            path.pop();
-            return false;
-          };
-          
-          if (dfs(startIdx, 1)) {
+          }
+
+          if (canPlace && path.length === word.length) {
             return path;
           }
         }
@@ -100,29 +86,67 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
       return null;
     }
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const allowCurves = Math.random() > 0.70; // 30% chance for curves, 70% straight
-    const path = placeWord(word, grid, allowCurves);
-    if (path) {
-      for(let j = 0; j < word.length; j++) {
-        grid[path[j]] = word[j];
+    for (let i = 0; i < sortedWords.length; i++) {
+      const word = sortedWords[i];
+      const path = placeWord(word, tempGrid);
+      if (path) {
+        for (let j = 0; j < word.length; j++) {
+          tempGrid[path[j]] = word[j];
+        }
+        tempTargetWords.push({
+          id: `w_${index}_${i}`,
+          word: word,
+          color: colors[i % colors.length],
+          indices: path
+        });
+      } else {
+        unplaced.push(word);
       }
-      targetWords.push({
-        id: `w_${index}_${i}`,
-        word: word,
-        color: colors[i % colors.length],
-        indices: path
-      });
-    } else {
-      console.warn(`Failed to place word: ${word}`);
-      // Even if one fails, we continue with others
+    }
+
+    return { grid: tempGrid, targetWords: tempTargetWords, unplaced };
+  }
+
+  // Attempt placement with retries to guarantee all words fit for the student
+  let bestResult = tryGenerateGrid(cols, rows);
+
+  // If some words couldn't fit on the first attempt, try up to 60 random restarts
+  if (bestResult.unplaced.length > 0) {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const result = tryGenerateGrid(cols, rows);
+      if (result.unplaced.length === 0) {
+        bestResult = result;
+        break;
+      }
+      if (result.unplaced.length < bestResult.unplaced.length) {
+        bestResult = result;
+      }
     }
   }
 
+  // If still not fitting, progressively expand grid size to guarantee all words fit for the student
+  while (bestResult.unplaced.length > 0 && cols < 8) {
+    cols++;
+    rows++;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const result = tryGenerateGrid(cols, rows);
+      if (result.unplaced.length === 0) {
+        bestResult = result;
+        break;
+      }
+      if (result.unplaced.length < bestResult.unplaced.length) {
+        bestResult = result;
+      }
+    }
+  }
+
+  const finalGrid = bestResult.grid;
+  const targetWords = bestResult.targetWords;
+  const unplacedWords = bestResult.unplaced;
+
   // Fill remaining empty cells with random Arabic letters
-  for(let i = 0; i < gridSize; i++) {
-    if (grid[i] === '') grid[i] = generateRandomArabicLetter();
+  for (let i = 0; i < cols * rows; i++) {
+    if (finalGrid[i] === '') finalGrid[i] = generateRandomArabicLetter();
   }
 
   return {
@@ -135,7 +159,9 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
     audioUrl: questionAudio || null,
     cols,
     rows,
-    grid,
-    targetWords
+    grid: finalGrid,
+    targetWords,
+    unplacedWords,
+    hasFittingIssue: unplacedWords.length > 0
   };
 }

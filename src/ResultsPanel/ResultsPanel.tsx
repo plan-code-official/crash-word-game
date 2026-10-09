@@ -6,7 +6,7 @@ import './ResultsPanel.css';
 import panelArt from '../assets/results-panel-empty.png';
 import celebrationTitle from './assets/good.png';
 import exitButtonImage from '../assets/Exit1.png';
-import retryButtonImage from '../assets/start_transparent.png';
+import retryButtonImage from '../assets/retry.png';
 
 const numberValue = (value: any) => {
   const parsed = Number(value);
@@ -72,7 +72,7 @@ export default function ResultsPanel({
           {/* Visual numbers are hidden from screen readers; one summary replaces them. */}
           <strong className="results-num results-num--grade" aria-hidden="true">{correctPercent}/100</strong>
           <strong className="results-num results-num--correct" aria-hidden="true">{correct}</strong>
-          <strong className="results-num results-num--coins" aria-hidden="true">+{earnedCoins}</strong>
+          <strong className="results-num results-num--coins" aria-hidden="true">{earnedCoins}</strong>
           <strong className="results-num results-num--wrong" aria-hidden="true">{wrong}</strong>
           <p className="results-sr">
             {`الدرجة ${correctPercent} من 100. إجابات صحيحة ${correct}. إجابات خاطئة ${wrong}. فلوس مكتسبة ${earnedCoins}.`}

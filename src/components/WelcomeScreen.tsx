@@ -1,5 +1,6 @@
 import React from 'react';
 import GameWelcomeScreen from './GameWelcomeScreen/GameWelcomeScreen';
+import { ErrorScreen } from './ErrorScreen';
 
 // Assets
 import questionCoinImg from '../assets/QuestionCoin.png';
@@ -27,9 +28,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   if (error) {
     return (
-      <div className="error-text" style={{ textAlign: 'center', padding: '20px', direction: 'rtl' }}>
-        حدث خطأ: {error}
-      </div>
+      <ErrorScreen
+        description={
+          error.toLowerCase().includes('lessonid')
+            ? 'لا يمكننا العثور على الدرس المطلوب. يرجى التأكد من الرابط أو العودة للرئيسية.'
+            : 'تعذر تحميل بيانات اللعبة في الوقت الحالي. دعنا نذهب إلى مكان مألوف.'
+        }
+        onExit={() => window.history.back()}
+      />
     );
   }
 

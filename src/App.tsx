@@ -10,9 +10,11 @@ import { LevelSelectModal } from './components/LevelSelectModal';
 import { CelebrationWrapper } from './components/CelebrationWrapper';
 import ResultsPanel from './ResultsPanel/ResultsPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { ErrorScreen } from './components/ErrorScreen';
 import { sounds } from './utils/audio';
-import { fetchQuestions, startSession, submitAnswers, completeSession } from './services/api';
+import { fetchQuestions, startSession, submitAnswers, completeSession, getIsNonStudentAuth } from './services/api';
 import { QuestionMedia } from './components/QuestionMedia';
+import { preloadQuestionAssets } from './utils/preloadAssets';
 import type { BackendQuestion, SubmitAnswerPayload } from './services/api';
 
 export function App() {
@@ -28,6 +30,7 @@ export function App() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [finalStats, setFinalStats] = useState<any>(null);
+  const [supervisorWarning, setSupervisorWarning] = useState<string | null>(null);
 
   // Overlays
   const [showCorrectOverlay, setShowCorrectOverlay] = useState(false);
@@ -64,7 +67,11 @@ export function App() {
         }
 
         const questions = await fetchQuestions(lessonId, token);
+        if (!questions || questions.length === 0) {
+          throw new Error('لم يتم العثور على أي أسئلة لهذا الدرس');
+        }
         setBackendQuestions(questions);
+        preloadQuestionAssets(questions);
         
         const dynamicLevels = questions.map((q, idx) => convertQuestionToLevel(q, idx));
         setLevels(dynamicLevels);
@@ -87,6 +94,19 @@ export function App() {
   }, []);
 
   const currentLevel = levels[levelIndex];
+
+  // Supervisor warning toast when words cannot fit into the grid
+  useEffect(() => {
+    if (getIsNonStudentAuth()) {
+      if (currentLevel?.hasFittingIssue) {
+        setSupervisorWarning('الكلمات كثيرة ولا تتسع في الشبكة');
+      } else if (!hasStarted && levels.some((l) => l.hasFittingIssue)) {
+        setSupervisorWarning('الكلمات كثيرة ولا تتسع في الشبكة');
+      } else {
+        setSupervisorWarning(null);
+      }
+    }
+  }, [currentLevel, levels, hasStarted]);
   const cols = currentLevel?.cols || 6;
   const rows = currentLevel?.rows || 6;
   const totalChoices = levels.reduce((total, level) => total + level.targetWords.length, 0);
@@ -196,10 +216,10 @@ export function App() {
     }
 
     const formedWord = selectedIndices.map((i) => currentLevel.grid[i]).join('');
-    const reversedWord = [...formedWord].reverse().join('');
 
+    // Only the exact order is valid; the reversed word must NOT match.
     const matchedTarget = currentLevel.targetWords.find(
-      (tw) => (tw.word === formedWord || tw.word === reversedWord) && !foundWordIds.includes(tw.id)
+      (tw) => tw.word === formedWord && !foundWordIds.includes(tw.id)
     );
 
     if (matchedTarget) {
@@ -299,13 +319,51 @@ export function App() {
     }
   };
 
+  if (apiError) {
+    return (
+      <ErrorScreen
+        onExit={handleExitSite}
+        description={
+          apiError.toLowerCase().includes('lessonid')
+            ? 'لا يمكننا العثور على الدرس المطلوب. يرجى التأكد من الرابط أو العودة للرئيسية.'
+            : 'تعذر تحميل بيانات اللعبة في الوقت الحالي. دعنا نذهب إلى مكان مألوف.'
+        }
+      />
+    );
+  }
+
+  if (!isLoading && levels.length === 0) {
+    return (
+      <ErrorScreen
+        onExit={handleExitSite}
+        description="لم يتم العثور على أي مراحل أو أسئلة متاحة في هذا الدرس."
+      />
+    );
+  }
+
   if (!hasStarted) {
     return (
-      <WelcomeScreen 
-        choicesCount={totalChoices}
-        isLoading={isLoading}
-        error={apiError}
-        onStart={() => setHasStarted(true)}
+      <>
+        {supervisorWarning && (
+          <div className="warning-toast-badge" dir="rtl">
+            <span>⚠️ {supervisorWarning}</span>
+          </div>
+        )}
+        <WelcomeScreen 
+          choicesCount={totalChoices}
+          isLoading={isLoading}
+          error={apiError}
+          onStart={() => setHasStarted(true)}
+        />
+      </>
+    );
+  }
+
+  if (!currentLevel) {
+    return (
+      <ErrorScreen
+        onExit={handleExitSite}
+        description="حدث خطأ أثناء تحميل المرحلة الحالية."
       />
     );
   }
@@ -315,6 +373,11 @@ export function App() {
   return (
     <div className="game-screen-wrapper">
       <main className="game-main-container">
+        {supervisorWarning && (
+          <div className="warning-toast-badge" dir="rtl">
+            <span>⚠️ {supervisorWarning}</span>
+          </div>
+        )}
         
         {showCorrectOverlay && (
           <div className="answer-overlay answer-feedback-card answer-feedback-card--success" dir="rtl">
@@ -392,11 +455,11 @@ export function App() {
 
       {showResults && (
         <ResultsPanel
-          score={finalStats?.score || 0}
+          score={finalStats?.score ?? 0}
           totalScore={100}
           correctAnswers={totalChoices}
           wrongAnswers={wrongWordAttempts}
-          coins={finalStats?.coins || coins}
+          coins={finalStats?.coins ?? (sessionData ? 0 : coins)}
           onRetry={handleRetry}
           onBack={handleExitSite}
         />

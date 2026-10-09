@@ -3,47 +3,65 @@ const BASE_URL = `${API_URL}/api/v1`;
 const GAME_ID = 10;
 
 let latestToken: string | null = null;
+let isNonStudentAuth = false;
+let refreshPromise: Promise<string | null> | null = null;
 
-const refreshAccessToken = async (): Promise<string | null> => {
-  try {
-    let refreshRes = await fetch(`${BASE_URL}/student/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: "{}"
-    });
+export const getIsNonStudentAuth = (): boolean => isNonStudentAuth;
 
-    if (!refreshRes.ok) {
-      refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+export const refreshAccessToken = async (): Promise<string | null> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      let isStudentSuccess = false;
+      let refreshRes = await fetch(`${BASE_URL}/student/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: "{}"
       });
-    }
 
-    if (refreshRes.ok) {
-      const refreshData = await refreshRes.json();
-      const newToken = refreshData?.data?.accessToken || refreshData?.data?.token || refreshData?.accessToken || refreshData?.token;
-      if (newToken) {
-        console.log("Token refreshed successfully.");
-        latestToken = newToken;
-
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('token')) urlParams.set('token', newToken);
-        if (urlParams.has('accesstoken')) urlParams.set('accesstoken', newToken);
-        const newUrl = window.location.pathname + '?' + urlParams.toString();
-        window.history.replaceState(null, '', newUrl);
-
-        return newToken;
+      if (refreshRes.ok) {
+        isStudentSuccess = true;
+      } else {
+        refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: "{}"
+        });
       }
-    } else {
-      console.error("Token refresh failed on both endpoints with status", refreshRes.status);
+
+      if (refreshRes.ok) {
+        // If /auth/refresh succeeded without error (not student endpoint)
+        isNonStudentAuth = !isStudentSuccess;
+
+        const refreshData = await refreshRes.json();
+        const newToken = refreshData?.data?.accessToken || refreshData?.data?.token || refreshData?.accessToken || refreshData?.token;
+        if (newToken) {
+          console.log(`Token refreshed successfully (${isNonStudentAuth ? 'non-student/supervisor' : 'student'}).`);
+          latestToken = newToken;
+
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.has('token')) urlParams.set('token', newToken);
+          if (urlParams.has('accesstoken')) urlParams.set('accesstoken', newToken);
+          const newUrl = window.location.pathname + '?' + urlParams.toString();
+          window.history.replaceState(null, '', newUrl);
+
+          return newToken;
+        }
+      } else {
+        console.error("Token refresh failed on both endpoints with status", refreshRes.status);
+      }
+    } catch (err) {
+      console.error("Error during token refresh", err);
+    } finally {
+      refreshPromise = null;
     }
-  } catch (err) {
-    console.error("Error during token refresh", err);
-  }
-  return null;
+    return null;
+  })();
+
+  return refreshPromise;
 };
 
 const apiFetch = async (url: string, options: RequestInit = {}, initialToken: string | null = null) => {
