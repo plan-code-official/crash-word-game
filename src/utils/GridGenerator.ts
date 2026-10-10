@@ -12,7 +12,7 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
   const questionImage = question.imageUrl || question.options.find((option: any) => option?.imageUrl)?.imageUrl;
   const questionAudio = question.audioUrl || question.options.find((option: any) => option?.audioUrl)?.audioUrl;
   
-  const colors = ['purple', 'orange', 'green', 'blue', 'pink', 'red'];
+  const colors = ['purple', 'orange', 'green', 'blue', 'pink', 'amber', 'cyan', 'red'];
 
   // Calculate required grid dimensions so all words fit
   const longestWord = words.reduce((max, w) => Math.max(max, w.length), 0);
@@ -23,16 +23,20 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
   let rows = Math.max(6, longestWord);
 
   // Ensure grid has enough space for all letters with breathing room
-  while (cols * rows < totalLetters + 6 && cols < 8) {
+  while (cols * rows < totalLetters + 6 && cols < 9) {
     cols++;
     rows++;
   }
 
-  // Easy mode for students: only right-to-left, up-to-down, down-to-up.
+  // Allowed directions strictly:
+  // 1. Right-to-left: [0, 1] (since the container has dir="rtl", column index increases from right to left)
+  // 2. Down-to-up: [-1, 0] (row decreases, moving upwards)
+  // 3. Up-to-down: [1, 0] (row increases, moving downwards)
+  // Left-to-right [0, -1] and diagonals are STRICTLY FORBIDDEN.
   const dirs = [
-    [-1, 0], // down-to-up
-    [1, 0],  // up-to-down
-    [0, -1]  // right-to-left (Arabic reading direction)
+    [0, 1],  // from right to left
+    [-1, 0], // from down to up
+    [1, 0]   // from up to down
   ];
 
   function tryGenerateGrid(gridCols: number, gridRows: number): { grid: string[]; targetWords: TargetWord[]; unplaced: string[] } {
@@ -125,7 +129,7 @@ export function convertQuestionToLevel(question: BackendQuestion, index: number)
   }
 
   // If still not fitting, progressively expand grid size to guarantee all words fit for the student
-  while (bestResult.unplaced.length > 0 && cols < 8) {
+  while (bestResult.unplaced.length > 0 && cols < 9) {
     cols++;
     rows++;
     for (let attempt = 0; attempt < 40; attempt++) {
