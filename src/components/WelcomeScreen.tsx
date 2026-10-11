@@ -1,6 +1,7 @@
 import React from 'react';
 import GameWelcomeScreen from './GameWelcomeScreen/GameWelcomeScreen';
 import { ErrorScreen } from './ErrorScreen';
+import { exitGame } from '../utils/exitGame';
 
 // Assets
 import questionCoinImg from '../assets/QuestionCoin.png';
@@ -34,7 +35,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             ? 'لا يمكننا العثور على الدرس المطلوب. يرجى التأكد من الرابط أو العودة للرئيسية.'
             : 'تعذر تحميل بيانات اللعبة في الوقت الحالي. دعنا نذهب إلى مكان مألوف.'
         }
-        onExit={() => window.history.back()}
+        onExit={exitGame}
       />
     );
   }
@@ -53,7 +54,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       startButtonImage={startButtonImg}
       exitButtonImage={exitButtonImg}
       onStart={onStart}
-      onExit={() => window.history.back()}
+      onExit={exitGame}
       isLoading={isLoading}
       isReady={isReady}
     />

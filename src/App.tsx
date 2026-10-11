@@ -12,6 +12,7 @@ import ResultsPanel from './ResultsPanel/ResultsPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { sounds } from './utils/audio';
+import { exitGame } from './utils/exitGame';
 import { fetchQuestions, startSession, submitAnswers, completeSession, getIsNonStudentAuth } from './services/api';
 import { QuestionMedia } from './components/QuestionMedia';
 import { preloadQuestionAssets } from './utils/preloadAssets';
@@ -309,15 +310,7 @@ export function App() {
   };
 
   // ResultsPanel / Exit Game: Back → exit game
-  const handleExitSite = () => {
-    // Check if the user has a browser history (meaning they came from your portal)
-    if (window.history.length > 1) {
-      window.history.back(); // Triggers the browser's native "Back" action
-    } else {
-      // Fallback: If they opened the game in a brand new tab directly, go to the root domain
-      window.location.href = '/'; 
-    }
-  };
+  const handleExitSite = exitGame;
 
   if (apiError) {
     return (
