@@ -19,6 +19,7 @@ interface ResultsPanelProps {
   wrongAnswers?: number | string;
   coins?: number | string;
   totalQuestions?: number | string;
+  totalAnswers?: number | string;
   onRetry?: () => void;
   onBack?: () => void;
   debugOverlay?: string;
@@ -30,6 +31,7 @@ export default function ResultsPanel({
   wrongAnswers,
   coins,
   totalQuestions,
+  totalAnswers,
   onRetry,
   onBack,
   debugOverlay,
@@ -37,9 +39,9 @@ export default function ResultsPanel({
   const correct = numberValue(correctAnswers);
   const wrong = numberValue(wrongAnswers);
   const earnedCoins = numberValue(coins);
-  const questionCount = numberValue(totalQuestions) || correct + wrong;
-  const correctPercent = questionCount ? Math.round((correct / questionCount) * 100) : 0;
-  const isSuccess = questionCount > 0 && correctPercent >= 50;
+  const questionCount = numberValue(totalQuestions) || numberValue(totalAnswers) || (correct + wrong) || 1;
+  const correctPercent = questionCount > 0 ? Math.max(0, Math.min(100, Math.round((correct / questionCount) * 100))) : 0;
+  const isSuccess = questionCount > 0 && correctPercent > 50;
 
   // The layout is sized from the exported image's real width / height.
   const [ratio, setRatio] = useState<number | null>(null);
@@ -72,7 +74,7 @@ export default function ResultsPanel({
           {/* Visual numbers are hidden from screen readers; one summary replaces them. */}
           <strong className="results-num results-num--grade" aria-hidden="true">{correctPercent}/100</strong>
           <strong className="results-num results-num--correct" aria-hidden="true">{correct}</strong>
-          <strong className="results-num results-num--coins" aria-hidden="true">{earnedCoins}</strong>
+          <strong className="results-num results-num--coins" aria-hidden="true">+{earnedCoins}</strong>
           <strong className="results-num results-num--wrong" aria-hidden="true">{wrong}</strong>
           <p className="results-sr">
             {`الدرجة ${correctPercent} من 100. إجابات صحيحة ${correct}. إجابات خاطئة ${wrong}. فلوس مكتسبة ${earnedCoins}.`}

@@ -72,6 +72,50 @@
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
+/* Left Group (Lives & Coins) */
+.topbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.8vw, 18px);
+}
+
+.topbar-lives {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.topbar-lives-label {
+  font-family: 'Lateef', sans-serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.topbar-hearts {
+  display: flex;
+  align-items: center;
+  gap: clamp(3px, 0.5vw, 6px);
+}
+
+.topbar-hearts img {
+  width: clamp(20px, 2.6vw, 30px);
+  height: clamp(20px, 2.6vw, 30px);
+  object-fit: contain;
+  transition: opacity 0.2s, filter 0.2s, transform 0.2s;
+}
+
+.topbar-hearts img.is-inactive {
+  opacity: 0.28;
+  filter: grayscale(1);
+  transform: scale(0.85);
+}
+
 /* Coins Badge (Left Side) */
 .topbar-coins-badge {
   display: flex;
@@ -125,28 +169,99 @@
   box-shadow: 0 0 8px rgba(113, 217, 255, 0.6);
 }
 
-@media (max-width: 320px) {
-  .topbar-container {
-    padding: 8px 10px;
+@media (max-width: 600px) {
+  .topbar-left-group {
+    gap: 6px;
+  }
+  .topbar-lives-label {
+    font-size: 1.1rem;
+  }
+  .topbar-hearts img {
+    width: 18px;
+    height: 18px;
   }
   .topbar-coins-badge {
-    padding: 2px 10px 2px 4px;
+    min-width: 74px;
+    padding: 3px 10px 3px 4px;
     gap: 6px;
-    min-width: 70px;
   }
   .topbar-coin-wrapper {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
+  }
+  .topbar-coins-amount {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar-container {
+    padding: 6px 8px;
+  }
+  .topbar-content {
+    margin-bottom: 8px;
+  }
+  .topbar-left-group {
+    gap: 4px;
+  }
+  .topbar-lives-label {
+    font-size: 0.95rem;
+  }
+  .topbar-hearts {
+    gap: 2px;
+  }
+  .topbar-hearts img {
+    width: 14px;
+    height: 14px;
+  }
+  .topbar-coins-badge {
+    min-width: 62px;
+    padding: 2px 8px 2px 4px;
+    gap: 4px;
+  }
+  .topbar-coin-wrapper {
+    width: 22px;
+    height: 22px;
+  }
+  .topbar-coins-amount {
+    font-size: 0.95rem;
   }
   .topbar-exit-btn {
     width: 36px;
     height: 36px;
     padding: 6px;
+    border-radius: 9px;
   }
   .topbar-question-label {
     font-size: 1.1rem;
   }
   .topbar-question-count {
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .topbar-container {
+    padding: 6px 8px;
+  }
+  .topbar-coins-badge {
+    padding: 2px 6px 2px 4px;
+    gap: 4px;
+    min-width: 58px;
+  }
+  .topbar-coin-wrapper {
+    width: 20px;
+    height: 20px;
+  }
+  .topbar-exit-btn {
+    width: 32px;
+    height: 32px;
+    padding: 5px;
+  }
+  .topbar-question-label {
+    font-size: 1rem;
+  }
+  .topbar-question-count {
+    font-size: 0.9rem;
   }
 }

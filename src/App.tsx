@@ -18,6 +18,8 @@ import { QuestionMedia } from './components/QuestionMedia';
 import { preloadQuestionAssets } from './utils/preloadAssets';
 import type { BackendQuestion, SubmitAnswerPayload } from './services/api';
 
+const MAX_LIVES = 5;
+
 export function App() {
   // Backend Integration State
   const [hasStarted, setHasStarted] = useState(false);
@@ -32,6 +34,8 @@ export function App() {
   const [showResults, setShowResults] = useState(false);
   const [finalStats, setFinalStats] = useState<any>(null);
   const [supervisorWarning, setSupervisorWarning] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   // Overlays
   const [showCorrectOverlay, setShowCorrectOverlay] = useState(false);
@@ -41,6 +45,8 @@ export function App() {
   // Game State
   const [levelIndex, setLevelIndex] = useState<number>(0);
   const [coins, setCoins] = useState<number>(6);
+  const [lives, setLives] = useState<number>(MAX_LIVES);
+  const livesRef = useRef<number>(MAX_LIVES);
   const [choicesFound, setChoicesFound] = useState<number>(0);
   const [wrongWordAttempts, setWrongWordAttempts] = useState<number>(0);
   const [coinsUsed, setCoinsUsed] = useState<number>(0);
@@ -161,6 +167,55 @@ export function App() {
     }
   };
 
+  const finishGame = async (currentChoices = choicesFound, _currentWrongs = wrongWordAttempts) => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    const questionsCount = totalChoices || backendQuestions.length || 1;
+    const percentage = questionsCount > 0 ? Math.round((currentChoices / questionsCount) * 100) : 0;
+    const shouldCelebrate = percentage > 50;
+
+    if (sessionData) {
+      try {
+        if (answersRef.current.length === 0 && backendQuestions.length > 0) {
+          const timeTaken = Math.max(1, Math.floor((Date.now() - levelStartTimeRef.current) / 1000));
+          const qId = backendQuestions[Math.min(levelIndex, backendQuestions.length - 1)]?.id || 0;
+          answersRef.current.push({
+            questionId: qId,
+            selectedAnswer: 'Completed',
+            timeTaken
+          });
+        }
+        if (answersRef.current.length > 0) {
+          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
+        }
+        const stats = await completeSession(sessionData.sessionId, sessionData.token, coinsUsed);
+        setFinalStats(stats);
+        if (shouldCelebrate) {
+          setShowCelebration(true);
+        } else {
+          setShowResults(true);
+        }
+      } catch (err: any) {
+        setApiError(err.message || 'Failed to complete game');
+      } finally {
+        setIsSubmitting(false);
+        isSubmittingRef.current = false;
+      }
+    } else {
+      setIsSubmitting(false);
+      isSubmittingRef.current = false;
+      // Fallback
+      setFinalStats({ score: percentage, stars: percentage > 50 ? 2 : 0, coins: coins, experience: percentage });
+      if (shouldCelebrate) {
+        setShowCelebration(true);
+      } else {
+        setShowResults(true);
+      }
+    }
+  };
+
   const handleLevelComplete = async () => {
     // Record dummy answer for this level
     if (sessionData && backendQuestions.length > 0) {
@@ -187,23 +242,7 @@ export function App() {
       levelStartTimeRef.current = Date.now();
     } else {
       // Game Over Sequence
-      if (sessionData) {
-        try {
-          setIsLoading(true);
-          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
-          const stats = await completeSession(sessionData.sessionId, sessionData.token, coinsUsed);
-          setFinalStats(stats);
-          setShowCelebration(true);
-        } catch (err: any) {
-          setApiError(err.message || 'Failed to complete game');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        // Fallback
-        setFinalStats({ score: 100, stars: 3, coins: coins, experience: 100 });
-        setShowCelebration(true);
-      }
+      finishGame();
     }
   };
 
@@ -251,7 +290,12 @@ export function App() {
         }, 500);
       }
     } else {
-      setWrongWordAttempts((count) => count + 1);
+      const nextWrongs = wrongWordAttempts + 1;
+      setWrongWordAttempts(nextWrongs);
+      const nextLives = Math.max(0, livesRef.current - 1);
+      livesRef.current = nextLives;
+      setLives(nextLives);
+
       sounds.playWrong();
       setWrongSelection(true);
       setShowWrongOverlay(true);
@@ -260,8 +304,14 @@ export function App() {
         setSelectedIndices([]);
       }, 450);
       setTimeout(() => setShowWrongOverlay(false), 1200);
+
+      if (nextLives <= 0) {
+        setTimeout(() => {
+          finishGame(choicesFound, nextWrongs);
+        }, 500);
+      }
     }
-  }, [isDragging, selectedIndices, currentLevel, foundWordIds, solvedMap]);
+  }, [isDragging, selectedIndices, currentLevel, foundWordIds, solvedMap, choicesFound, wrongWordAttempts]);
 
   const handleHint = () => {
     if (coins < 1) {
@@ -346,7 +396,11 @@ export function App() {
           choicesCount={totalChoices}
           isLoading={isLoading}
           error={apiError}
-          onStart={() => setHasStarted(true)}
+          onStart={() => {
+            setLives(MAX_LIVES);
+            livesRef.current = MAX_LIVES;
+            setHasStarted(true);
+          }}
         />
       </>
     );
@@ -394,6 +448,8 @@ export function App() {
           currentChoice={choicesFound}
           totalChoices={totalChoices}
           coins={coins}
+          lives={lives}
+          maxLives={MAX_LIVES}
           onExitClick={handleExitSite}
         />
         <div className="game-body-layout">
@@ -441,6 +497,12 @@ export function App() {
         />
       </main>
 
+      {isSubmitting && (
+        <div className="submitting-overlay" aria-busy="true">
+          <div className="submitting-spinner" />
+        </div>
+      )}
+
       <CelebrationWrapper
         isVisible={showCelebration}
         onComplete={handleCelebrationComplete}
@@ -450,8 +512,10 @@ export function App() {
         <ResultsPanel
           score={finalStats?.score ?? 0}
           totalScore={100}
-          correctAnswers={totalChoices}
+          correctAnswers={choicesFound}
           wrongAnswers={wrongWordAttempts}
+          totalAnswers={choicesFound + wrongWordAttempts}
+          totalQuestions={totalChoices}
           coins={finalStats?.coins ?? (sessionData ? 0 : coins)}
           onRetry={handleRetry}
           onBack={handleExitSite}
