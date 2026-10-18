@@ -109,6 +109,7 @@ export interface SubmitAnswerPayload {
   questionId: number;
   selectedAnswer: string;
   timeTaken: number;
+  nofvalidanswers?: number;
 }
 
 export const fetchQuestions = async (lessonId: string, token: string): Promise<BackendQuestion[]> => {
@@ -154,7 +155,13 @@ export const submitAnswers = async (
   nofvalidanswers: number = 0
 ): Promise<void> => {
   // Ensure we send at least a dummy answer if array is empty (backend validation requirement)
-  const payload = answers.length > 0 ? answers : [{ questionId: 0, selectedAnswer: 'N/A', timeTaken: 0 }];
+  const baseAnswers = answers.length > 0 ? answers : [{ questionId: 0, selectedAnswer: 'N/A', timeTaken: 0 }];
+  const payload = baseAnswers.map((ans) => ({
+    questionId: ans.questionId,
+    selectedAnswer: ans.selectedAnswer,
+    timeTaken: ans.timeTaken,
+    nofvalidanswers: typeof ans.nofvalidanswers === 'number' ? ans.nofvalidanswers : nofvalidanswers
+  }));
 
   const response = await apiFetch(`${BASE_URL}/student/games/sessions/${sessionId}/submit-answers`, {
     method: 'POST',
@@ -162,8 +169,7 @@ export const submitAnswers = async (
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      answers: payload,
-      nofvalidanswers
+      answers: payload
     })
   }, token);
 

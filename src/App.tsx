@@ -186,7 +186,8 @@ export function App() {
           answersRef.current.push({
             questionId: qId,
             selectedAnswer: 'Completed',
-            timeTaken
+            timeTaken,
+            nofvalidanswers: validChoices
           });
         }
         if (answersRef.current.length > 0) {
@@ -227,7 +228,8 @@ export function App() {
       answersRef.current.push({
         questionId: qId,
         selectedAnswer: 'Completed',
-        timeTaken
+        timeTaken,
+        nofvalidanswers: currentLevel?.targetWords.length || 0
       });
     }
 
