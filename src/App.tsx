@@ -48,6 +48,7 @@ export function App() {
   const [lives, setLives] = useState<number>(MAX_LIVES);
   const livesRef = useRef<number>(MAX_LIVES);
   const [choicesFound, setChoicesFound] = useState<number>(0);
+  const choicesFoundRef = useRef<number>(0);
   const [wrongWordAttempts, setWrongWordAttempts] = useState<number>(0);
   const [coinsUsed, setCoinsUsed] = useState<number>(0);
   const [foundWordIds, setFoundWordIds] = useState<string[]>([]);
@@ -167,13 +168,14 @@ export function App() {
     }
   };
 
-  const finishGame = async (currentChoices = choicesFound, _currentWrongs = wrongWordAttempts) => {
+  const finishGame = async (currentChoices?: number, _currentWrongs = wrongWordAttempts) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     setIsSubmitting(true);
 
+    const validChoices = typeof currentChoices === 'number' ? currentChoices : choicesFoundRef.current;
     const questionsCount = totalChoices || backendQuestions.length || 1;
-    const percentage = questionsCount > 0 ? Math.round((currentChoices / questionsCount) * 100) : 0;
+    const percentage = questionsCount > 0 ? Math.round((validChoices / questionsCount) * 100) : 0;
     const shouldCelebrate = percentage > 50;
 
     if (sessionData) {
@@ -188,7 +190,7 @@ export function App() {
           });
         }
         if (answersRef.current.length > 0) {
-          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current);
+          await submitAnswers(sessionData.sessionId, sessionData.token, answersRef.current, validChoices);
         }
         const stats = await completeSession(sessionData.sessionId, sessionData.token, coinsUsed);
         setFinalStats(stats);
@@ -278,7 +280,11 @@ export function App() {
       setHintIndices([]);
       setHintCount(0);
       setCoins((c) => c + 1);
-      setChoicesFound((count) => count + 1);
+      setChoicesFound((count) => {
+        const next = count + 1;
+        choicesFoundRef.current = next;
+        return next;
+      });
 
       setShowCorrectOverlay(true);
       setTimeout(() => setShowCorrectOverlay(false), 1200);

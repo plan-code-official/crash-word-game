@@ -147,7 +147,12 @@ export const startSession = async (lessonId: string, token: string): Promise<{ s
   throw new Error('Invalid session response');
 };
 
-export const submitAnswers = async (sessionId: string, token: string, answers: SubmitAnswerPayload[]): Promise<void> => {
+export const submitAnswers = async (
+  sessionId: string,
+  token: string,
+  answers: SubmitAnswerPayload[],
+  nofvalidanswers: number = 0
+): Promise<void> => {
   // Ensure we send at least a dummy answer if array is empty (backend validation requirement)
   const payload = answers.length > 0 ? answers : [{ questionId: 0, selectedAnswer: 'N/A', timeTaken: 0 }];
 
@@ -156,7 +161,10 @@ export const submitAnswers = async (sessionId: string, token: string, answers: S
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ answers: payload })
+    body: JSON.stringify({
+      answers: payload,
+      nofvalidanswers
+    })
   }, token);
 
   if (!response.ok) {
