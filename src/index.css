@@ -42,7 +42,7 @@ select {
   min-height: 100dvh;
   height: 100vh;
   height: 100dvh;
-  background: #061e2d url('./assets/BG.png') center center / cover no-repeat;
+  background: #061e2d var(--game-bg-url) center center / cover no-repeat;
   padding: clamp(10px, 2vh, 24px) clamp(8px, 1.5vw, 16px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -1074,7 +1074,9 @@ select {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   animation: popInOverlay 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.answer-feedback-card { min-width:clamp(220px,42vw,360px); padding:clamp(16px,2.6vh,26px) clamp(24px,4vw,48px); border:2px solid; border-radius:24px; background:linear-gradient(180deg,rgba(8,48,70,.96),rgba(5,30,48,.94)); font-family:'Lateef',sans-serif; font-size:clamp(2.1rem, min(6vw, 6.4vh), 3.8rem); line-height:1; white-space:nowrap; }
+.answer-feedback-card { min-width:clamp(220px,42vw,360px); padding:clamp(16px,2.6vh,26px) clamp(24px,4vw,48px); border:2px solid; border-radius:24px; background:linear-gradient(180deg,rgba(8,48,70,.96),rgba(5,30,48,.94)); font-family:'Scheherazade New',serif; font-size:clamp(2.1rem, min(6vw, 6.4vh), 3.8rem); line-height:1; white-space:nowrap; }
+.game-main-container,
+.game-main-container * { font-family: 'Scheherazade New', serif !important; }
 .answer-feedback-card--success { color:#38ef7d; border-color:#38ef7d; }
 .answer-feedback-card--wrong { color:#ff5d5c; border-color:#ff5d5c; }
 .answer-feedback__icon { width:1.15em; height:1.15em; flex:0 0 auto; }

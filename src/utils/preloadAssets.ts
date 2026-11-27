@@ -15,7 +15,8 @@ import fireworksAudioUrl from '../../Celebration/Celebration/fireworks.mp3';
 import resultsPanelArt from '../assets/results-panel-empty.png';
 import celebrationTitleImg from '../ResultsPanel/assets/good.png';
 import retryButtonImg from '../assets/retry.png';
-import error404Img from '../assets/404.png';
+
+let hasPreloadedCore = false;
 
 /**
  * Preloads a single image and decodes it into memory if supported
@@ -64,7 +65,6 @@ export const CORE_ASSETS = {
     descriptionImg,
     startButtonImg,
     exitButtonImg,
-    error404Img,
   ],
   celebration: {
     images: [celebrationRobotsImg],
@@ -79,39 +79,60 @@ export const CORE_ASSETS = {
 };
 
 /**
- * Preload all core screen assets ahead of time (Welcome Screen, Celebration, Results Panel)
+ * Staged preloading: Welcome assets load first; Celebration & Results defer to idle time.
  */
 export async function preloadAllCoreAssets(): Promise<void> {
+  if (hasPreloadedCore || typeof window === 'undefined') return;
+  hasPreloadedCore = true;
+
   try {
-    const allImages = [
-      ...CORE_ASSETS.welcome,
-      ...CORE_ASSETS.celebration.images,
-      ...CORE_ASSETS.results,
-    ];
+    await Promise.allSettled(CORE_ASSETS.welcome.map(preloadImage));
 
-    const imagePromises = allImages.map(preloadImage);
-    const audioPromises = CORE_ASSETS.celebration.audio.map(preloadAudio);
+    const preloadEndScreen = () => {
+      [...CORE_ASSETS.celebration.images, ...CORE_ASSETS.results].forEach((src) => {
+        void preloadImage(src);
+      });
+      CORE_ASSETS.celebration.audio.forEach((src) => {
+        void preloadAudio(src);
+      });
+    };
 
-    await Promise.allSettled([...imagePromises, ...audioPromises]);
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(preloadEndScreen, { timeout: 2000 });
+    } else {
+      setTimeout(preloadEndScreen, 1000);
+    }
   } catch (err) {
     console.warn('Asset preloading completed with minor issues:', err);
   }
 }
 
 /**
- * Preload dynamic question media (images & audio)
+ * Progressive question media preload (first 2 immediately, remaining in idle time)
  */
 export function preloadQuestionAssets(
   questions: Array<{ imageUrl?: string | null; audioUrl?: string | null; options?: Array<{ imageUrl?: string | null; audioUrl?: string | null }> }>
 ): void {
-  for (const q of questions) {
-    if (q.imageUrl) preloadImage(q.imageUrl);
-    if (q.audioUrl) preloadAudio(q.audioUrl);
-    if (Array.isArray(q.options)) {
-      for (const opt of q.options) {
-        if (opt?.imageUrl) preloadImage(opt.imageUrl);
-        if (opt?.audioUrl) preloadAudio(opt.audioUrl);
+  const preloadBatch = (list: typeof questions) => {
+    for (const q of list) {
+      if (q.imageUrl) void preloadImage(q.imageUrl);
+      if (q.audioUrl) void preloadAudio(q.audioUrl);
+      if (Array.isArray(q.options)) {
+        for (const opt of q.options) {
+          if (opt?.imageUrl) void preloadImage(opt.imageUrl);
+          if (opt?.audioUrl) void preloadAudio(opt.audioUrl);
+        }
       }
+    }
+  };
+
+  preloadBatch(questions.slice(0, 2));
+  if (questions.length > 2 && typeof window !== 'undefined') {
+    const rest = questions.slice(2);
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => preloadBatch(rest), { timeout: 2500 });
+    } else {
+      setTimeout(() => preloadBatch(rest), 1200);
     }
   }
 }
